@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "LitterApp",
+    "slug": "LitterApp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/screens/assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./src/screens/assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/screens/assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.reimnjoo.LitterApp"
+    },
+    "web": {
+      "favicon": "./src/screens/assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ac24f088-2e82-41fd-a2e7-a2e3566040f8"
+      }
+    }
+  }
+}
