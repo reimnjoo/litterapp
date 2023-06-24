@@ -41,8 +41,8 @@ import { Divider } from "@rneui/themed";
 
 // Device Width x Height
 
-  const windowWidth = Dimensions.get('window').width;
-  const windowHeight = Dimensions.get('window').height;
+  const Width = Dimensions.get('window').width;
+  const Height = Dimensions.get('window').height;
 
 const OverviewBuyer = ({ navigation, route }) => {
 
@@ -227,7 +227,7 @@ const OverviewBuyer = ({ navigation, route }) => {
             position: 'absolute',
             zIndex: 1,
             left: 0,
-            width: windowWidth,
+            width: Width * 100 / 100,
             height: '100%',
             backgroundColor: 'rgba(52, 52, 52, 0.8)',
             overflow: 'hidden',
@@ -331,7 +331,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                             <Image style={{
                                 position: 'absolute',
                                 top: 30,
-                                left: 144
+                                left: 130
                             }} source={require('../assets/img/statsArrow1.png')}></Image>
                         </View>
                     </TouchableOpacity>
@@ -342,7 +342,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                             <Image style={{
                                 position: 'absolute',
                                 top: 30,
-                                left: 144
+                                left: 130
                             }} source={require('../assets/img/statsArrow1.png')}></Image>
                         </View>
                     </TouchableOpacity>
@@ -498,7 +498,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                 color: '#5E5E5E',
                 transform: [{ rotate: '90deg'}],
                 top: 160,
-                left: 285
+                left: Width > 380 ? 280 : 235
             }}>weight of scrap per type</Text>
             <VictoryChart
               style={styles.chart}
@@ -586,7 +586,7 @@ const OverviewBuyer = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
-    width: windowWidth * 100 / 100,
+    width: Width * 100 / 100,
     backgroundColor: "#2c3e50",
     alignItems: "center",
     zIndex: 2
@@ -655,7 +655,11 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     marginTop: 20,
-    justifyContent: 'center'
+    justifyContent: 'center',
+    width: Width * 88 / 100
+  },
+  scrapWeight: {
+    width: Width * 42 / 100
   },
   overviewTitle: {
     fontFamily: 'Inter-SemiBold',
@@ -733,7 +737,7 @@ const styles = StyleSheet.create({
   },
   graphContainer: {
     backgroundColor: 'white',
-    width: 320,
+    width: Width * 90 / 100,
     marginTop: 20,
     marginBottom: 120,
     borderRadius: 20,

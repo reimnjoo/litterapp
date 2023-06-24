@@ -1,9 +1,10 @@
 // Component Imports
 
-import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, useWindowDimensions, ScrollView, TextInput, Image, SectionList, BackHandler, FlatList, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, useWindowDimensions, ScrollView, TextInput, Image, SectionList, BackHandler, FlatList, Alert, Dimensions } from 'react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LinearGradient } from "expo-linear-gradient";
+import DatePicker from 'react-native-date-picker';
 
 // Icon Imports
 
@@ -15,12 +16,19 @@ import {
     Ionicons,
     AntDesign,
     Feather,
+    MaterialCommunityIcons,
 } from "@expo/vector-icons";
 
 // Custom Modal Component 
 
 import ScrapAddModal from "./ScrapAddModal";
 import { makeStyles } from '@rneui/base';
+
+// Device Width x Height
+
+const Width = Dimensions.get('window').width;
+const Height = Dimensions.get('window').height;
+
 
 const ScrapCat = ({ navigation }) => {
 
@@ -66,7 +74,11 @@ const ScrapCat = ({ navigation }) => {
     const [itemize, setitemize] = useState("");
     const [scrapCost, setScrapCost] = useState("");
     const [scrapQuantity, setScrapQuantity] = useState("");
-    const [scrapAddDate, setScrapAddDate] = useState("");
+
+    const [scrapAddDate, setScrapAddDate] = useState(new Date());
+    const [scrapEditDate, setScrapEditDate] = useState(new Date());
+    const [open, setOpen] = useState(false);
+
     const [scrapCategory, setScrapCategory] = useState("");
     const [categoryCount, setCategoryCount] = useState("");
  
@@ -150,6 +162,7 @@ const ScrapCat = ({ navigation }) => {
             .then(scrapCategory => {
                 console.log(scrapCategory);
                 setCategoryData(scrapCategory);
+                console.log("Device Height: " + Height);
             })
             .catch(err => {
                 console.log(err);
@@ -235,7 +248,7 @@ const ScrapCat = ({ navigation }) => {
                             {
                                 category.map(categories => {
                                     return (
-                                        <View>
+                                        <View key={categories.categoryID}>
                                             <View style={styles.categoryHeader}>
                                                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                                     <Text style={styles.categoryTitle}>{ categories.categoryTitle }</Text>
@@ -281,7 +294,7 @@ const ScrapCat = ({ navigation }) => {
                                                                         width: 160,
                                                                         height: 230,
                                                                         marginLeft: 30,
-                                                                    }}>
+                                                                    }} key={scrapdata.scrapID}>
                                                                         <Image style={{
                                                                                 width: "100%",
                                                                                 height: 70,
@@ -317,7 +330,7 @@ const ScrapCat = ({ navigation }) => {
                             }
                         </ScrollView>
                     </View>
-                    <ScrapAddModal activeHeight={height * 0.3} ref={addModalRef} backgroundColor={'white'} backDropColor={'black'}>
+                    <ScrapAddModal activeHeight={Height * 35 / 100} ref={addModalRef} backgroundColor={'white'} backDropColor={'black'}>
                         <Text style={{
                             color: '#3E5A47',
                             fontFamily: 'Inter-SemiBold',
@@ -384,7 +397,7 @@ const ScrapCat = ({ navigation }) => {
                         </View>
                     </ScrapAddModal>
                     <ScrapAddModal activeHeight={height * 0.5} ref={editModalRef} backgroundColor={'white'} backDropColor={'black'}>
-                    <Text style={{
+                        <Text style={{
                             color: '#3E5A47',
                             fontFamily: 'Inter-SemiBold',
                             fontSize: 20,
@@ -401,7 +414,7 @@ const ScrapCat = ({ navigation }) => {
                                         fontFamily: 'Inter-Regular',
                                         fontSize: 16,
                                         textAlign: 'center',
-                                        width: 177,
+                                        width: Width * 50 / 100,
                                         paddingBottom: 10,
                                         borderBottomWidth: 0.7,
                                         borderBottomColor: '#3E5A47',
@@ -417,7 +430,7 @@ const ScrapCat = ({ navigation }) => {
                                         fontFamily: 'Inter-Regular',
                                         fontSize: 16,
                                         textAlign: 'center',
-                                        width: 116,
+                                        width: Width * 20 / 100,
                                         paddingBottom: 10,
                                         borderBottomWidth: 0.7,
                                         borderBottomColor: '#3E5A47',
@@ -435,7 +448,7 @@ const ScrapCat = ({ navigation }) => {
                                         fontFamily: 'Inter-Regular',
                                         fontSize: 16,
                                         textAlign: 'center',
-                                        width: 177,
+                                        width: Width * 50 / 100,
                                         paddingBottom: 10,
                                         borderBottomWidth: 0.7,
                                         borderBottomColor: '#3E5A47',
@@ -451,7 +464,7 @@ const ScrapCat = ({ navigation }) => {
                                         fontFamily: 'Inter-Regular',
                                         fontSize: 16,
                                         textAlign: 'center',
-                                        width: 116,
+                                        width: Width * 20 / 100,
                                         paddingBottom: 10,
                                         borderBottomWidth: 0.7,
                                         borderBottomColor: '#3E5A47',
@@ -502,12 +515,142 @@ const ScrapCat = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
                     </ScrapAddModal>
-                    <ScrapAddModal activeHeight={height * 0.5} ref={addScrapModalRef} backgroundColor={'white'} backDropColor={'black'}>
+                    <ScrapAddModal activeHeight={Height > 728 ? (Height * 50 / 100) : (Height * 55 / 100)} ref={addScrapModalRef} backgroundColor={'white'} backDropColor={'black'}>
                         <Text style={{
                             color: '#3E5A47',
                             fontFamily: 'Inter-SemiBold',
                             fontSize: 20,
+                            textAlign: 'center',
+                            marginTop: 10,
                         }}>Add Entry</Text>
+                        <View style={{alignItems: 'center'}}>
+                            <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
+                                <TextInput
+                                    value={scrapName}
+                                    onChangeText={scrapname => { setScrapName(scrapname) }}
+                                    placeholder="Item Name"
+                                    style={{
+                                        fontFamily: 'Inter-Regular',
+                                        fontSize: 16,
+                                        textAlign: 'center',
+                                        width: Width * 50 / 100,
+                                        paddingBottom: 10,
+                                        borderBottomWidth: 0.7,
+                                        borderBottomColor: '#3E5A47',
+                                        marginTop: 25,
+                                        textAlign: 'left',
+                                    }}
+                                />
+                                <TextInput
+                                    value={itemize}
+                                    onChangeText={itemize => { setitemize(itemize) }}
+                                    placeholder="Size"
+                                    style={{
+                                        fontFamily: 'Inter-Regular',
+                                        fontSize: 16,
+                                        textAlign: 'center',
+                                        width: Width * 20 / 100,
+                                        paddingBottom: 10,
+                                        borderBottomWidth: 0.7,
+                                        borderBottomColor: '#3E5A47',
+                                        marginTop: 25,
+                                        textAlign: 'left',
+                                    }}
+                                />
+                            </View>
+                            <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
+                                <TextInput
+                                    value={scrapCost}
+                                    onChangeText={scrapcost => { setScrapCost(scrapcost) }}
+                                    placeholder="Cost / kg"
+                                    style={{
+                                        fontFamily: 'Inter-Regular',
+                                        fontSize: 16,
+                                        textAlign: 'center',
+                                        width: Width * 50 / 100,
+                                        paddingBottom: 10,
+                                        borderBottomWidth: 0.7,
+                                        borderBottomColor: '#3E5A47',
+                                        marginTop: 25,
+                                        textAlign: 'left',
+                                    }}
+                                />
+                                <TextInput
+                                    value={scrapQuantity}
+                                    onChangeText={scrapquantity => { setScrapQuantity(scrapquantity) }}
+                                    placeholder="Quantity"
+                                    style={{
+                                        fontFamily: 'Inter-Regular',
+                                        fontSize: 16,
+                                        textAlign: 'center',
+                                        width: Width * 20 / 100,
+                                        paddingBottom: 10,
+                                        borderBottomWidth: 0.7,
+                                        borderBottomColor: '#3E5A47',
+                                        marginTop: 25,
+                                        textAlign: 'left',
+                                    }}
+                                />
+                            </View>
+                        </View>
+                        <View style={{
+                            alignItems: 'center',
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            marginLeft: 40,
+                            marginRight: 40,
+                            marginTop: 50,
+                        }}>
+                            <Text>Test</Text>
+                            <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+                                <MaterialCommunityIcons name="file-image-plus-outline" size={32} color="#3E5A47" />
+                                <Text style={{fontFamily: 'Inter-Regular', fontSize: 18, textDecorationLine: 'underline', color: '#3E5A47'}}>Upload Image</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => {}}>
+                                <MaterialCommunityIcons name="calendar-plus" size={34} color="#3E5A47" />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            marginLeft: 30,
+                            marginRight: 30,
+                            marginTop: 40,
+                        }}>
+                            <TouchableOpacity style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: 16,
+                                borderWidth: 1,
+                                borderColor: '#3E5A47',
+                                width: 100,
+                                height: 39
+                            }} onPress={() => {closeAddHandler();}}>
+                                <Text style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontSize: 20,
+                                    color: '#3E5A47'
+                                }}>Delete</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: '#3E5A47',
+                                borderRadius: 16,
+                                width: 82,
+                                height: 39
+                            }} onPress={() => {handleSubmitCategory(); setCategoryCount("set");}}>
+                            <Text style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontSize: 20,
+                                    color: '#F4F5F4'
+                                }}>Save</Text>
+                            </TouchableOpacity>
+                        </View>
                     </ScrapAddModal>
                 </LinearGradient>
                 
@@ -613,3 +756,4 @@ const styles = StyleSheet.create({
 })
 
 export default ScrapCat;
+
