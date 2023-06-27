@@ -118,14 +118,13 @@ const ScrapAddModal = forwardRef(({activeHeight, backDropColor, backgroundColor,
                         height: activeHeight,
                         backgroundColor: backgroundColor,
                     }
-                    ]}>
+                ]}>
                     <View style={styles.lineContainer}>
                         <View style={styles.line}></View>
                     </View>
                     {children}
                 </Animated.View>
             </PanGestureHandler>
-    
         </>
     )
 

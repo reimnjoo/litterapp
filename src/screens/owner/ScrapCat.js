@@ -1,10 +1,12 @@
 // Component Imports
 
-import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, useWindowDimensions, ScrollView, TextInput, Image, SectionList, BackHandler, FlatList, Alert, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, useWindowDimensions, ScrollView, TextInput, Image, SectionList, BackHandler, FlatList, Alert, Dimensions, Platform, KeyboardAvoidingView, Keyboard } from 'react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LinearGradient } from "expo-linear-gradient";
-import DatePicker from 'react-native-date-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 
 // Icon Imports
 
@@ -28,7 +30,6 @@ import { makeStyles } from '@rneui/base';
 
 const Width = Dimensions.get('window').width;
 const Height = Dimensions.get('window').height;
-
 
 const ScrapCat = ({ navigation }) => {
 
@@ -70,18 +71,19 @@ const ScrapCat = ({ navigation }) => {
 
     //  const [scrapImage, setScrapImage] = useState(null); for later use
   
+    const [scrapID, setScrapID] = useState(0);
     const [scrapName, setScrapName] = useState("");
-    const [itemize, setitemize] = useState("");
+    const [scrapSize, setScrapSize] = useState("");
     const [scrapCost, setScrapCost] = useState("");
     const [scrapQuantity, setScrapQuantity] = useState("");
-
     const [scrapAddDate, setScrapAddDate] = useState(new Date());
-    const [scrapEditDate, setScrapEditDate] = useState(new Date());
-    const [open, setOpen] = useState(false);
-
+    const [scrapFinalDate, setScrapFinalDate] = useState("");
+    const [showPicker, setShowPicker] = useState(false);
     const [scrapCategory, setScrapCategory] = useState("");
     const [categoryCount, setCategoryCount] = useState("");
- 
+    const [scrapImage, setScrapImage] = useState(null);
+    const [temporaryCategory, setTemporaryCategory] = useState("");
+
     // state
     // array map (from database)
     // array-length
@@ -89,6 +91,39 @@ const ScrapCat = ({ navigation }) => {
     // mapped array data onpress state -> php -> database update/delete
 
     // Back Button + Back-Device Handler
+
+    // Calendar Modal Handler
+
+    const toggleDatePicker = () => {
+        setShowPicker(!showPicker);
+    }
+
+    const formatDate = (rawdate) => {
+        const date = new Date(rawdate);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+
+        return `${year}-${month}-${day}`;
+    }
+
+    console.log('Scrap Add Date: ' + scrapAddDate);
+
+    const onChange = ({ type }, selectedDate) => {
+        if(type == "set") {
+            const currentDate = selectedDate;
+            setScrapAddDate(currentDate);
+
+            if(Platform.OS === "android") {
+                toggleDatePicker();
+                setScrapFinalDate(formatDate(currentDate));
+            }
+        } else {
+            toggleDatePicker();
+        }
+    };
+
+    // Back Handler
 
     const [showBox, setShowBox] = useState(true);
 
@@ -122,6 +157,36 @@ const ScrapCat = ({ navigation }) => {
     }, []);
 
 
+    // Keyboard Handler
+
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+    const detectKeyboard = () => {
+
+        useEffect(() => {
+            const keyboardDidShowListener = Keyboard.addListener(
+                'keyboardDidShow',
+                () => {
+                    setKeyboardVisible(true);
+                },
+            );
+            const keyboardDidHideListener = Keyboard.addListener(
+                'keyboardDidHide',
+                () => {
+                    setKeyboardVisible(false);
+                },
+            );
+
+            return () => {
+                keyboardDidHideListener.remove();
+                keyboardDidShowListener.remove();
+            };
+        }, []);
+
+        return isKeyboardVisible;
+    }
+
+
     // Fetch Scrap Data
 
     const [data, setData] = useState([]);
@@ -137,9 +202,9 @@ const ScrapCat = ({ navigation }) => {
 
     // Scrap Count 
 
-    const scrapCount = Object.keys(data).length;
+    // const scrapCount = Object.keys(data).length;
 
-    console.log("Scrap Count: " + scrapCount);
+    // console.log("Scrap Count: " + scrapCount);
 
     // Group Fetched Data
 
@@ -151,7 +216,7 @@ const ScrapCat = ({ navigation }) => {
     //     }
     // }, []);
 
-    // Fetch Scrap Categories Data
+    // Fetch Scrap Categories and Scrap Data
 
     const getScrapCategories = () => {
         return (
@@ -170,12 +235,162 @@ const ScrapCat = ({ navigation }) => {
         )
     }
 
+    const getScrapData = () => {
+        return (
+            fetch("https://sseoll.com/scrapDataRead.php")
+            .then(data => {
+                return data.json();
+            })
+            .then(scrapData => {
+                console.log(scrapData);
+                setData(scrapData);
+            })
+            .catch(err => {
+                console.log(err);
+            }) 
+            )
+    }
+
     useEffect(() => {
         getScrapCategories();
+        getScrapData();
     }, [])
-    
 
-    // Write Scrap Categories Data
+    // Scrap Image Handler
+
+    const pickImage = async () => {
+
+    // No permissions request is necessary for launching the image library
+
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        console.log("Image Data: " + result);
+
+        if (!result.canceled) {
+            setScrapImage(result.assets[0].uri);
+        } 
+    };
+
+    // Write + Edit Scrap Categories Data
+
+    const scrapDataForm = {
+        scrapName: scrapName,
+        scrapSize: scrapSize,
+        scrapCost: scrapCost,
+        scrapQuantity: scrapQuantity,
+        scrapAddDate: scrapFinalDate,
+        scrapCategory: temporaryCategory,
+        scrapImage: scrapImage,
+    }
+
+    const editedScrapDataForm = {
+        scrapID: parseInt(scrapID),
+        scrapName: scrapName,
+        scrapSize: scrapSize,
+        scrapCost: scrapCost,
+        scrapQuantity: scrapQuantity,
+        scrapAddDate: scrapFinalDate,
+        scrapCategory: temporaryCategory,
+        scrapImage: scrapImage,
+    }
+   
+    const clearForm = () => {
+        setScrapID(0);
+        setScrapName("");
+        setScrapSize("");
+        setScrapCost("");
+        setScrapQuantity("");
+        setScrapFinalDate("");
+        setScrapCategory("");
+        setScrapImage("");
+    }
+
+    // Submit Scrap Data
+
+    const submitScrapData = () => {
+        console.log("pre-post: " + scrapDataForm.scrapName);
+        fetch("https://sseoll.com/scrapDataWrite.php", {
+            method: 'POST',
+            headers: {
+            'Accept' : 'application/json',
+            'Content-Type' : 'application/json'
+            },
+        body: JSON.stringify(scrapDataForm),
+        }).then((response) => {
+            return response.text();
+        }).then((data) => {
+            getScrapData();
+            console.log("test submit for scrapdata: " + data);
+        }).catch(err => {
+            console.log(err);
+        }) 
+    }
+
+    // Submit Edited Scrap Data
+    
+    const setEditState = (scrapID, scrapName, scrapSize, scrapCost, scrapQuantity, scrapDate, scrapCategory, scrapImage) => {
+        setScrapID(scrapID);
+        setScrapName(scrapName);
+        setScrapSize(scrapSize);
+        setScrapCost(scrapCost);
+        setScrapQuantity(scrapQuantity);
+        setScrapFinalDate(scrapDate);
+        setTemporaryCategory(scrapCategory);
+        setScrapImage(scrapImage);
+
+        console.log(JSON.stringify(editedScrapDataForm));
+    }
+
+    const submitScrapEdit = () => {
+        console.log("pre-post: " + editedScrapDataForm.scrapID);
+        fetch("https://sseoll.com/scrapDataEdit.php", {
+            method: 'POST',
+            headers: {
+            'Accept' : 'application/json',
+            'Content-Type' : 'application/json'
+            },
+        body: JSON.stringify(editedScrapDataForm),
+        }).then((response) => {
+            return response.text();
+        }).then((data) => {
+            getScrapData();
+            console.log("edit result: " + data);
+        }).catch(err => {
+            console.log(err);
+        }) 
+    }
+
+    // Delete Scrap Data
+
+    const scrapDeleteForm = {
+        scrapID: scrapID
+    }
+
+    const deleteScrapData = () => {
+        console.log("pre-post delete: " + editedScrapDataForm.scrapID);
+        fetch("https://sseoll.com/scrapDataDelete.php", {
+            method: 'POST',
+            headers: {
+            'Accept' : 'application/json',
+            'Content-Type' : 'application/json'
+            },
+        body: JSON.stringify(scrapDeleteForm),
+        }).then((response) => {
+            return response.text();
+        }).then((data) => {
+            getScrapData();
+            console.log("delete result: " + data);
+        }).catch(err => {
+            console.log(err);
+        }) 
+    }
+
+    // Add Scrap Category
 
     const addCategory = () => {
         fetch("https://sseoll.com/scrapCategoryWrite.php", {
@@ -195,26 +410,7 @@ const ScrapCat = ({ navigation }) => {
         }) 
     }
 
-    // Fetch Scrap Data
-
-    useEffect(() => {
-        fetch("https://sseoll.com/scrapDataRead.php")
-        .then(data => {
-            return data.json();
-        })
-        .then(scrapData => {
-            console.log(scrapData);
-            setData(scrapData);
-        })
-        .catch(err => {
-            console.log(err);
-        }) 
-    }, [])
-
-    // console.log('scrapdata: ' + data);
-    // console.log('scrapcategory: ' + categorySample);
-
-    // console.log(typeof data);
+    // Set Sample Scrap Data
     
     return (
         <GestureHandlerRootView style={{flex: 1}}>
@@ -246,87 +442,97 @@ const ScrapCat = ({ navigation }) => {
                     <View style={styles.bodyContainer}>
                         <ScrollView>
                             {
-                                category.map(categories => {
-                                    return (
-                                        <View key={categories.categoryID}>
-                                            <View style={styles.categoryHeader}>
-                                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                                    <Text style={styles.categoryTitle}>{ categories.categoryTitle }</Text>
-                                                    <TouchableOpacity>
-                                                        <Image style={{width: 16, height: 15,}} source={require("../assets/img/pencil.png")}/>
-                                                    </TouchableOpacity>
+                                category !== null ? (
+                                    category.map(categories => {
+                                        return (
+                                            <View key={categories.categoryID}>
+                                                <View style={styles.categoryHeader}>
+                                                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                                        <Text style={styles.categoryTitle}>{ categories.categoryTitle }</Text>
+                                                        <TouchableOpacity>
+                                                            <Image style={{width: 16, height: 15,}} source={require("../assets/img/pencil.png")}/>
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                    <View>
+                                                        <TouchableOpacity>
+                                                            <Octicons name="trash" size={24} color="#3E5A47" />
+                                                        </TouchableOpacity>
+                                                    </View>
                                                 </View>
-                                                <View>
-                                                    <TouchableOpacity>
-                                                        <Octicons name="trash" size={24} color="#3E5A47" />
-                                                    </TouchableOpacity>
-                                                </View>
-                                            </View>
-                                            <View style={{flexDirection: 'row'}}>
-                                                <ScrollView
-                                                    horizontal={true}
-                                                    contentContainerStyle={{paddingLeft: 20, paddingRight: 40}}
-                                                    showsHorizontalScrollIndicator={false}
-                                                >
-                                                    <TouchableOpacity
-                                                        style={{
-                                                            alignItems: 'center',
-                                                            backgroundColor: "#FFFFFF",
-                                                            borderRadius: 10,
-                                                            justifyContent: 'center',
-                                                            padding: 10,
-                                                            width: 160,
-                                                            height: 230,
-                                                            marginLeft: 30,
-                                                        }}
-                                                        onPress={() => {openAddScrapHandler();}}
+                                                <View style={{flexDirection: 'row'}}>
+                                                    <ScrollView
+                                                        horizontal={true}
+                                                        contentContainerStyle={{paddingLeft: 20, paddingRight: 40}}
+                                                        showsHorizontalScrollIndicator={false}
                                                     >
-                                                        <Feather name="plus" size={28} color="#3E5A47"/>
-                                                    </TouchableOpacity>
-                                                    {
-                                                        data.map(scrapdata => {
-                                                            if(categories.categoryTitle === scrapdata.scrapCategory) {
-                                                                return (
-                                                                    <View style={{
-                                                                        backgroundColor: "#FFFFFF",
-                                                                        borderRadius: 10,
-                                                                        padding: 10,
-                                                                        width: 160,
-                                                                        height: 230,
-                                                                        marginLeft: 30,
-                                                                    }} key={scrapdata.scrapID}>
-                                                                        <Image style={{
-                                                                                width: "100%",
-                                                                                height: 70,
-                                                                                borderRadius: 8,
-                                                                                marginBottom: 5,
-                                                                        }} source={require("../assets/img/placeholder.png")}></Image>
-                                                                        <Text style={styles.categoryScrap}>{scrapdata.scrapName}</Text>
-                                                                        <View style={styles.categoryContent}>
-                                                                                <Text style={styles.categoryLabel}>Size: </Text>
-                                                                            <Text style={styles.categoryText}>{scrapdata.scrapSize} {scrapdata.scrapSizeUnit}</Text>
-                                                                        </View>
-                                                                        <View style={styles.categoryContent}>
-                                                                            <Text style={styles.categoryLabel}>Cost: </Text>
-                                                                            <Text style={styles.categoryText}>{scrapdata.scrapCost} / {scrapdata.scrapWeightUnit}</Text>
-                                                                        </View>
-                                                                        <View style={styles.categoryContent}>
-                                                                            <Text style={styles.categoryLabel}>Quantity: </Text>
-                                                                            <Text style={styles.categoryText}>{scrapdata.scrapQuantity} pieces </Text>
-                                                                        </View>
-                                                                        <TouchableOpacity style={styles.categoryEdit} onPress={() => {openEditHandler();}}>
-                                                                            <Image style={{width: 16, height: 15,}}source={require("../assets/img/pencil.png")}></Image>
-                                                                        </TouchableOpacity>
-                                                                    </View>
-                                                                )
-                                                            }
-                                                        })
-                                                    } 
-                                                </ScrollView>
+                                                        <TouchableOpacity
+                                                            style={{
+                                                                alignItems: 'center',
+                                                                backgroundColor: "#FFFFFF",
+                                                                borderRadius: 10,
+                                                                justifyContent: 'center',
+                                                                padding: 10,
+                                                                width: 160,
+                                                                height: 230,
+                                                                marginLeft: 30,
+                                                            }}
+                                                            onPress={() => {openAddScrapHandler(); setTemporaryCategory(categories.categoryTitle)}}
+                                                        >
+                                                            <Feather name="plus" size={28} color="#3E5A47"/>
+                                                        </TouchableOpacity>
+                                                        {
+                                                            data !== null ? (
+                                                                data.map(scrapdata => {
+                                                                    if(categories.categoryTitle === scrapdata.scrapCategory) {
+                                                                        return (
+                                                                            <View style={{
+                                                                                backgroundColor: "#FFFFFF",
+                                                                                borderRadius: 10,
+                                                                                padding: 10,
+                                                                                width: 160,
+                                                                                height: 230,
+                                                                                marginLeft: 30,
+                                                                            }} key={scrapdata.scrapID}>
+                                                                                <Image style={{
+                                                                                        width: "100%",
+                                                                                        height: 70,
+                                                                                        borderRadius: 8,
+                                                                                        marginBottom: 5,
+                                                                                }} source={require("../assets/img/placeholder.png")}></Image>
+                                                                                <Text style={styles.categoryScrap}>{scrapdata.scrapName}</Text>
+                                                                                <View style={styles.categoryContent}>
+                                                                                        <Text style={styles.categoryLabel}>Size: </Text>
+                                                                                    <Text style={styles.categoryText}>{scrapdata.scrapSize}</Text>
+                                                                                </View>
+                                                                                <View style={styles.categoryContent}>
+                                                                                    <Text style={styles.categoryLabel}>Cost: </Text>
+                                                                                    <Text style={styles.categoryText}>{scrapdata.scrapCost}</Text>
+                                                                                </View>
+                                                                                <View style={styles.categoryContent}>
+                                                                                    <Text style={styles.categoryLabel}>Quantity: </Text>
+                                                                                    <Text style={styles.categoryText}>{scrapdata.scrapQuantity} pieces </Text>
+                                                                                </View>
+                                                                                <TouchableOpacity style={styles.categoryEdit} onPress={() => {setEditState(scrapdata.scrapID, scrapdata.scrapName, scrapdata.scrapSize, scrapdata.scrapCost, scrapdata.scrapQuantity, scrapdata.scrapAddDate, scrapdata.scrapCategory, scrapdata.scrapImage); openEditHandler();}}>
+                                                                                    <Image style={{width: 16, height: 15,}}source={require("../assets/img/pencil.png")}></Image>
+                                                                                </TouchableOpacity>
+                                                                            </View>
+                                                                        )
+                                                                    }
+                                                                })
+                                                            ) : (
+                                                                <View></View>
+                                                            )
+                                                        } 
+                                                    </ScrollView>
+                                                </View>
                                             </View>
-                                        </View>
-                                    )
-                                })
+                                        )
+                                    })
+                                ) : (
+                                    <View>
+                                        <Text>No scrap data yet</Text>
+                                    </View>
+                                )
                             }
                         </ScrollView>
                     </View>
@@ -398,121 +604,146 @@ const ScrapCat = ({ navigation }) => {
                     </ScrapAddModal>
                     <ScrapAddModal activeHeight={height * 0.5} ref={editModalRef} backgroundColor={'white'} backDropColor={'black'}>
                         <Text style={{
-                            color: '#3E5A47',
-                            fontFamily: 'Inter-SemiBold',
-                            fontSize: 20,
-                            textAlign: 'center',
-                            marginTop: 10,
-                        }}>Edit Entry</Text>
-                        <View style={{alignItems: 'center'}}>
-                            <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
-                                <TextInput
-                                    value={scrapName}
-                                    onChangeText={scrapname => { setScrapName(scrapname) }}
-                                    placeholder="Item Name"
-                                    style={{
-                                        fontFamily: 'Inter-Regular',
-                                        fontSize: 16,
-                                        textAlign: 'center',
-                                        width: Width * 50 / 100,
-                                        paddingBottom: 10,
-                                        borderBottomWidth: 0.7,
-                                        borderBottomColor: '#3E5A47',
-                                        marginTop: 25,
-                                        textAlign: 'left',
-                                    }}
-                                />
-                                <TextInput
-                                    value={itemize}
-                                    onChangeText={itemize => { setitemize(itemize) }}
-                                    placeholder="Size"
-                                    style={{
-                                        fontFamily: 'Inter-Regular',
-                                        fontSize: 16,
-                                        textAlign: 'center',
-                                        width: Width * 20 / 100,
-                                        paddingBottom: 10,
-                                        borderBottomWidth: 0.7,
-                                        borderBottomColor: '#3E5A47',
-                                        marginTop: 25,
-                                        textAlign: 'left',
-                                    }}
-                                />
+                                color: '#3E5A47',
+                                fontFamily: 'Inter-SemiBold',
+                                fontSize: 20,
+                                textAlign: 'center',
+                                marginTop: 10,
+                            }}>Edit Entry</Text>
+                            <View style={{alignItems: 'center'}}>
+                                <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
+                                    <TextInput
+                                        value={scrapName}
+                                        onChangeText={scrapname => { setScrapName(scrapname) }}
+                                        placeholder="Item Name"
+                                        style={{
+                                            fontFamily: 'Inter-Regular',
+                                            fontSize: 16,
+                                            textAlign: 'center',
+                                            width: Width * 50 / 100,
+                                            paddingBottom: 10,
+                                            borderBottomWidth: 0.7,
+                                            borderBottomColor: '#3E5A47',
+                                            marginTop: 25,
+                                            textAlign: 'left',
+                                        }}
+                                    />
+                                    <TextInput
+                                        value={scrapSize}
+                                        onChangeText={size => { setScrapSize(size) }}
+                                        placeholder="Size"
+                                        style={{
+                                            fontFamily: 'Inter-Regular',
+                                            fontSize: 16,
+                                            textAlign: 'center',
+                                            width: Width * 20 / 100,
+                                            paddingBottom: 10,
+                                            borderBottomWidth: 0.7,
+                                            borderBottomColor: '#3E5A47',
+                                            marginTop: 25,
+                                            textAlign: 'left',
+                                        }}
+                                    />
+                                </View>
+                                <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
+                                    <TextInput
+                                        value={scrapCost}
+                                        onChangeText={scrapcost => { setScrapCost(scrapcost) }}
+                                        placeholder="Cost / kg"
+                                        style={{
+                                            fontFamily: 'Inter-Regular',
+                                            fontSize: 16,
+                                            textAlign: 'center',
+                                            width: Width * 50 / 100,
+                                            paddingBottom: 10,
+                                            borderBottomWidth: 0.7,
+                                            borderBottomColor: '#3E5A47',
+                                            marginTop: 25,
+                                            textAlign: 'left',
+                                        }}
+                                    />
+                                    <TextInput
+                                        value={scrapQuantity}
+                                        onChangeText={scrapquantity => { setScrapQuantity(scrapquantity) }}
+                                        placeholder="Quantity"
+                                        style={{
+                                            fontFamily: 'Inter-Regular',
+                                            fontSize: 16,
+                                            textAlign: 'center',
+                                            width: Width * 20 / 100,
+                                            paddingBottom: 10,
+                                            borderBottomWidth: 0.7,
+                                            borderBottomColor: '#3E5A47',
+                                            marginTop: 25,
+                                            textAlign: 'left',
+                                        }}
+                                    />
+                                </View>
                             </View>
-                            <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
-                                <TextInput
-                                    value={scrapCost}
-                                    onChangeText={scrapcost => { setScrapCost(scrapcost) }}
-                                    placeholder="Cost / kg"
-                                    style={{
-                                        fontFamily: 'Inter-Regular',
-                                        fontSize: 16,
-                                        textAlign: 'center',
-                                        width: Width * 50 / 100,
-                                        paddingBottom: 10,
-                                        borderBottomWidth: 0.7,
-                                        borderBottomColor: '#3E5A47',
-                                        marginTop: 25,
-                                        textAlign: 'left',
-                                    }}
-                                />
-                                <TextInput
-                                    value={scrapQuantity}
-                                    onChangeText={scrapquantity => { setScrapQuantity(scrapquantity) }}
-                                    placeholder="Quantity"
-                                    style={{
-                                        fontFamily: 'Inter-Regular',
-                                        fontSize: 16,
-                                        textAlign: 'center',
-                                        width: Width * 20 / 100,
-                                        paddingBottom: 10,
-                                        borderBottomWidth: 0.7,
-                                        borderBottomColor: '#3E5A47',
-                                        marginTop: 25,
-                                        textAlign: 'left',
-                                    }}
-                                />
-                            </View>
-                        </View>
-                        <View style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            marginLeft: 30,
-                            marginRight: 30,
-                            marginTop: 50,
-                        }}>
-                            <TouchableOpacity style={{
-                                display: 'flex',
+                            <View style={{
                                 alignItems: 'center',
-                                justifyContent: 'center',
-                                borderRadius: 16,
-                                borderWidth: 1,
-                                borderColor: '#3E5A47',
-                                width: 100,
-                                height: 39
-                            }} onPress={() => {closeAddHandler();}}>
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                marginLeft: 40,
+                                marginRight: 40,
+                                marginTop: 50,
+                            }}>
+                                {showPicker && (
+                                    <DateTimePicker
+                                        mode="date"
+                                        display="calendar"
+                                        value={scrapAddDate}
+                                        onChange={onChange}
+                                    />
+                                )}
+                                <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', gap: 10}} onPress={pickImage}>
+                                    <MaterialCommunityIcons name="file-image-plus-outline" size={32} color="#3E5A47" />
+                                    <Text style={{fontFamily: 'Inter-Regular', fontSize: 18, textDecorationLine: 'underline', color: '#3E5A47'}}>Upload Image</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {toggleDatePicker();}}>
+                                    <MaterialCommunityIcons name="calendar-plus" size={34} color="#3E5A47" />
+                                </TouchableOpacity>
+                            </View>
+                            <View style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                marginLeft: 30,
+                                marginRight: 30,
+                                marginTop: 40,
+                            }}>
+                                <TouchableOpacity style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: 16,
+                                    borderWidth: 1,
+                                    borderColor: '#3E5A47',
+                                    width: 100,
+                                    height: 39
+                                }} onPress={() => {closeEditHandler(); deleteScrapData();}}>
+                                    <Text style={{
+                                        fontFamily: 'Inter-Regular',
+                                        fontSize: 20,
+                                        color: '#3E5A47'
+                                    }}>Delete</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: '#3E5A47',
+                                    borderRadius: 16,
+                                    width: 82,
+                                    height: 39
+                                }} onPress={() => {closeEditHandler(); submitScrapEdit(); clearForm();}}>
                                 <Text style={{
-                                    fontFamily: 'Inter-Regular',
-                                    fontSize: 20,
-                                    color: '#3E5A47'
-                                }}>Delete</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                backgroundColor: '#3E5A47',
-                                borderRadius: 16,
-                                width: 82,
-                                height: 39
-                            }} onPress={() => {handleSubmitCategory(); setCategoryCount("set");}}>
-                            <Text style={{
-                                    fontFamily: 'Inter-Regular',
-                                    fontSize: 20,
-                                    color: '#F4F5F4'
-                                }}>Save</Text>
-                            </TouchableOpacity>
+                                        fontFamily: 'Inter-Regular',
+                                        fontSize: 20,
+                                        color: '#F4F5F4'
+                                    }}>Save</Text>
+                                </TouchableOpacity>
                         </View>
                     </ScrapAddModal>
                     <ScrapAddModal activeHeight={Height > 728 ? (Height * 50 / 100) : (Height * 55 / 100)} ref={addScrapModalRef} backgroundColor={'white'} backDropColor={'black'}>
@@ -542,8 +773,8 @@ const ScrapCat = ({ navigation }) => {
                                     }}
                                 />
                                 <TextInput
-                                    value={itemize}
-                                    onChangeText={itemize => { setitemize(itemize) }}
+                                    value={scrapSize}
+                                    onChangeText={size => { setScrapSize(size) }}
                                     placeholder="Size"
                                     style={{
                                         fontFamily: 'Inter-Regular',
@@ -602,12 +833,19 @@ const ScrapCat = ({ navigation }) => {
                             marginRight: 40,
                             marginTop: 50,
                         }}>
-                            <Text>Test</Text>
-                            <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+                            {showPicker && (
+                                <DateTimePicker
+                                    mode="date"
+                                    display="calendar"
+                                    value={scrapAddDate}
+                                    onChange={onChange}
+                                />
+                            )}
+                            <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', gap: 10}} onPress={pickImage}>
                                 <MaterialCommunityIcons name="file-image-plus-outline" size={32} color="#3E5A47" />
                                 <Text style={{fontFamily: 'Inter-Regular', fontSize: 18, textDecorationLine: 'underline', color: '#3E5A47'}}>Upload Image</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => {}}>
+                            <TouchableOpacity onPress={() => {toggleDatePicker();}}>
                                 <MaterialCommunityIcons name="calendar-plus" size={34} color="#3E5A47" />
                             </TouchableOpacity>
                         </View>
@@ -628,12 +866,12 @@ const ScrapCat = ({ navigation }) => {
                                 borderColor: '#3E5A47',
                                 width: 100,
                                 height: 39
-                            }} onPress={() => {closeAddHandler();}}>
+                            }} onPress={() => {closeAddScrapHandler();}}>
                                 <Text style={{
                                     fontFamily: 'Inter-Regular',
                                     fontSize: 20,
                                     color: '#3E5A47'
-                                }}>Delete</Text>
+                                }}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={{
                                 display: 'flex',
@@ -643,7 +881,7 @@ const ScrapCat = ({ navigation }) => {
                                 borderRadius: 16,
                                 width: 82,
                                 height: 39
-                            }} onPress={() => {handleSubmitCategory(); setCategoryCount("set");}}>
+                            }} onPress={() => {closeAddScrapHandler(); submitScrapData(); clearForm();}}>
                             <Text style={{
                                     fontFamily: 'Inter-Regular',
                                     fontSize: 20,
