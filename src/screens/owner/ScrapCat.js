@@ -1,4 +1,4 @@
-// Component Imports
+// *Component Imports
 
 import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, useWindowDimensions, ScrollView, TextInput, Image, SectionList, BackHandler, FlatList, Alert, Dimensions, Platform, KeyboardAvoidingView, Keyboard } from 'react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -8,7 +8,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import * as ImagePicker from 'expo-image-picker';
 
-// Icon Imports
+// *Icon Imports
 
 import {
     FontAwesome,
@@ -21,29 +21,30 @@ import {
     MaterialCommunityIcons,
 } from "@expo/vector-icons";
 
-// Custom Modal Component 
+// *Custom Modal Component 
 
 import ScrapAddModal from "./ScrapAddModal";
 import { makeStyles } from '@rneui/base';
 
-// Device Width x Height
+// *Device Width x Height
 
 const Width = Dimensions.get('window').width;
 const Height = Dimensions.get('window').height;
 
 const ScrapCat = ({ navigation }) => {
 
-    // Get Device Height
+    // *Get Device Height
 
     const {height} = useWindowDimensions();
 
-    // Modal Reference Point
+    // *Modal Reference Point
 
     const addModalRef = useRef(null);
     const editModalRef = useRef(null);
     const addScrapModalRef = useRef(null);
+    const editCategoryModalRef = useRef(null);
 
-    // Modal Handlers
+    // *Modal Handlers
 
     const openAddHandler = useCallback(() => {
         addModalRef.current.expand()
@@ -51,6 +52,7 @@ const ScrapCat = ({ navigation }) => {
 
     const closeAddHandler = useCallback(() => {
         addModalRef.current.close()
+        clearForm();
     }, []);
 
     const openEditHandler = useCallback(() => {
@@ -59,6 +61,7 @@ const ScrapCat = ({ navigation }) => {
 
     const closeEditHandler = useCallback(() => {
         editModalRef.current.close()
+        clearForm();
     }, []);
 
     const openAddScrapHandler = useCallback(() => {
@@ -67,42 +70,65 @@ const ScrapCat = ({ navigation }) => {
 
     const closeAddScrapHandler = useCallback(() => {
         addScrapModalRef.current.close()
+        clearForm();
     }, []);
 
-    //  const [scrapImage, setScrapImage] = useState(null); for later use
+    const openEditCategoryHandler = useCallback(() => {
+        editCategoryModalRef.current.expand()
+    }, []);
+
+    const closeEditCategoryHandler = useCallback(() => {
+        editCategoryModalRef.current.close()
+        clearForm();
+    }, []);
+
+    // *UseState Hook for Scrap Data
   
     const [scrapID, setScrapID] = useState(0);
+    const [categoryID, setCategoryID] = useState(0);
     const [scrapName, setScrapName] = useState("");
     const [scrapSize, setScrapSize] = useState("");
+    const [scrapWeight, setScrapWeight] = useState("");
     const [scrapCost, setScrapCost] = useState("");
     const [scrapQuantity, setScrapQuantity] = useState("");
     const [scrapAddDate, setScrapAddDate] = useState(new Date());
     const [scrapFinalDate, setScrapFinalDate] = useState("");
     const [showPicker, setShowPicker] = useState(false);
+    const [hasImage, setHasImage] = useState(false);
     const [scrapCategory, setScrapCategory] = useState("");
+    const [scrapColor, setScrapColor] = useState("");
     const [categoryCount, setCategoryCount] = useState("");
-    const [scrapImage, setScrapImage] = useState(null);
+    const [finalScrapImage, setFinalScrapImage] = useState([]);
+    const [scrapImage, setScrapImage] = useState([]);
     const [temporaryCategory, setTemporaryCategory] = useState("");
 
-    // state
-    // array map (from database)
-    // array-length
-    // mapped array data (state) // onpress
-    // mapped array data onpress state -> php -> database update/delete
+    //* Random Color Generator Function
 
-    // Back Button + Back-Device Handler
+    const colorGenerator = () => {
+        return "#" + Math.floor(Math.random()*16777215).toString(16);
+    }
 
-    // Calendar Modal Handler
+    console.log("Sample Color: " + colorGenerator());
+
+    //* Back Button + Back-Device Handler
+
+    //* Calendar Modal Handler
 
     const toggleDatePicker = () => {
         setShowPicker(!showPicker);
     }
+
+    const [dayOfDate, setDayOfDate] = useState("");
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
     const formatDate = (rawdate) => {
         const date = new Date(rawdate);
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
         const day = date.getDate();
+        setDayOfDate(daysOfWeek[date.getDay()]);
+
+        console.log("Day: ", dayOfDate);
 
         return `${year}-${month}-${day}`;
     }
@@ -123,9 +149,11 @@ const ScrapCat = ({ navigation }) => {
         }
     };
 
-    // Back Handler
+    //* Back Handler & Dialog Box Handler
 
     const [showBox, setShowBox] = useState(true);
+
+    //* Scrap Category Confirmation Dialog
 
     const showConfirmDialog = () => {
         return Alert.alert(
@@ -141,6 +169,60 @@ const ScrapCat = ({ navigation }) => {
             ]
         );
     };
+
+    const editSuccessDialog = () => {
+        return Alert.alert(
+            "Category Edited!",
+            `You have successfully edited the category "${tempCategory}".`,
+            [
+              {
+                text: "Okay",
+                onPress: () => {
+                  setShowBox(false);
+                },
+              },
+            ]
+        );
+    }
+
+    const confirmDeleteDialog = (categorydata, categorytitle) => {
+        return Alert.alert(
+            "Are you sure?",
+            `Do you wish to delete the category? "${categorytitle}" all scrap data content with the category will also be deleted.`,
+            [
+              {
+                text: "Delete Category",
+                onPress: () => {
+                  deleteScrapCategory(categorydata);
+                  deleteSuccessDialog(categorytitle);
+                  setShowBox(false);
+                },
+              },
+              {
+                text: "Cancel",
+                onPress: () => {
+                    setShowBox(false);
+                }
+              }
+            ]
+        );
+    };
+
+    const deleteSuccessDialog = (categorytitle) => {
+        return Alert.alert(
+            "Category Deleted",
+            `You have successfully deleted the category "${categorytitle}". All related scrap data within the category are also removed!.`,
+            [
+              {
+                text: "Okay",
+                onPress: () => {
+                  deleteScrapCategory();
+                  setShowBox(false);
+                },
+              },
+            ]
+        );
+    }
 
 
     function handleBackButton() {
@@ -263,18 +345,47 @@ const ScrapCat = ({ navigation }) => {
     // No permissions request is necessary for launching the image library
 
         let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
             quality: 1,
+            base64: true,
         });
 
-        console.log("Image Data: " + result);
+        let finalResult = {...result.assets[0], fileName: "image/scrapAsset/" + result.uri.substring(result.uri.lastIndexOf('/') + 1, result.uri.length)}
+        let imageUri = "https://www.sseoll.com/image/scrapAsset/" + result.uri.substring(result.uri.lastIndexOf('/') + 1, result.uri.length);
 
         if (!result.canceled) {
-            setScrapImage(result.assets[0].uri);
+            setFinalScrapImage(finalResult);
+            setScrapImage(imageUri);
+            console.log("Image Location: " + imageUri);
+            setHasImage(true);
         } 
     };
+
+    const uploadImage = () => {
+        // console.log("Image Data : ", imagedata)
+
+        let dataImage = {
+            method: 'POST',
+            body: JSON.stringify({
+                image: finalScrapImage,
+            }),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        };
+
+        return fetch('https://sseoll.com/imageUpload.php', dataImage)
+               .then(response => response.json())
+               .then(json => {
+                    console.log('Result: ', json)
+               })
+               .catch(err => {
+                    console.log('Error: ', err);
+               })
+    }
 
     // Write + Edit Scrap Categories Data
 
@@ -283,9 +394,12 @@ const ScrapCat = ({ navigation }) => {
         scrapSize: scrapSize,
         scrapCost: scrapCost,
         scrapQuantity: scrapQuantity,
+        scrapWeight: parseInt(scrapWeight),
         scrapAddDate: scrapFinalDate,
+        scrapDayAdded: dayOfDate,
         scrapCategory: temporaryCategory,
         scrapImage: scrapImage,
+        scrapColor: colorGenerator(),
     }
 
     const editedScrapDataForm = {
@@ -294,7 +408,9 @@ const ScrapCat = ({ navigation }) => {
         scrapSize: scrapSize,
         scrapCost: scrapCost,
         scrapQuantity: scrapQuantity,
+        scrapWeight: parseInt(scrapWeight),
         scrapAddDate: scrapFinalDate,
+        scrapDayAdded: dayOfDate,
         scrapCategory: temporaryCategory,
         scrapImage: scrapImage,
     }
@@ -305,9 +421,13 @@ const ScrapCat = ({ navigation }) => {
         setScrapSize("");
         setScrapCost("");
         setScrapQuantity("");
+        setScrapWeight(0);
         setScrapFinalDate("");
+        setDayOfDate("");
         setScrapCategory("");
         setScrapImage("");
+        setScrapColor("");
+        setHasImage(false);
     }
 
     // Submit Scrap Data
@@ -333,12 +453,13 @@ const ScrapCat = ({ navigation }) => {
 
     // Submit Edited Scrap Data
     
-    const setEditState = (scrapID, scrapName, scrapSize, scrapCost, scrapQuantity, scrapDate, scrapCategory, scrapImage) => {
+    const setEditState = (scrapID, scrapName, scrapSize, scrapCost, scrapQuantity, scrapWeight, scrapDate, scrapCategory, scrapImage) => {
         setScrapID(scrapID);
         setScrapName(scrapName);
         setScrapSize(scrapSize);
         setScrapCost(scrapCost);
         setScrapQuantity(scrapQuantity);
+        setScrapWeight(scrapWeight);
         setScrapFinalDate(scrapDate);
         setTemporaryCategory(scrapCategory);
         setScrapImage(scrapImage);
@@ -368,7 +489,7 @@ const ScrapCat = ({ navigation }) => {
     // Delete Scrap Data
 
     const scrapDeleteForm = {
-        scrapID: scrapID
+        scrapID: parseInt(scrapID)
     }
 
     const deleteScrapData = () => {
@@ -403,8 +524,70 @@ const ScrapCat = ({ navigation }) => {
         }).then((response) => {
             return response.text();
         }).then((data) => {
+            console.log("data: " + data);
+            if(data === "101") {
+                console.log("Result: Category already exists!");
+            } else {
+                getScrapCategories();
+                getScrapData();
+            }
+        }).catch(err => {
+            console.log(err);
+        }) 
+    }
+
+    // Edit Scrap Category
+
+    const categoryEditForm = {
+        categoryID: categoryID,
+        categoryTitle: tempCategory,
+    }
+
+    const editCategory = () => {
+        fetch("https://sseoll.com/scrapCategoryEdit.php", {
+            method: 'POST',
+            headers: {
+            'Accept' : 'application/json',
+            'Content-Type' : 'application/json'
+            },
+            body: JSON.stringify(categoryEditForm),
+        }).then((response) => {
+            return response.text();
+        }).then((data) => {
             console.log("test: " + data);
             getScrapCategories();
+        }).catch(err => {
+            console.log(err);
+        }) 
+    }
+
+    // Delete Scrap Category
+
+    // const categoryDeleteForm = {
+    //     categoryID: categoryID
+    // }
+
+    const deleteScrapCategory = (categorydata) => {
+        console.log("im executed!");
+        console.log("pre-post delete: " + categorydata);
+
+        const categoryData = {
+            categoryID: categorydata
+        }
+
+        fetch("https://sseoll.com/scrapCategoryDelete.php", {
+            method: 'POST',
+            headers: {
+            'Accept' : 'application/json',
+            'Content-Type' : 'application/json'
+            },
+        body: JSON.stringify(categoryData),
+        }).then((response) => {
+            return response.text();
+        }).then((data) => {
+            console.log("delete result: " + data);
+            getScrapCategories();
+            getScrapData();
         }).catch(err => {
             console.log(err);
         }) 
@@ -426,8 +609,8 @@ const ScrapCat = ({ navigation }) => {
                 >
                     <View style={styles.headerContainer}>
                         <View style={styles.headerContent}>
-                            <TouchableOpacity style={styles.searchButton}>
-                                <FontAwesome name="search" size={24} color="#3E5A47" />
+                            <TouchableOpacity onPress={() => { navigation.goBack();}}>
+                                <Ionicons name="arrow-back" size={24} color="#3E5A47" />
                             </TouchableOpacity>
                             <Text style={styles.headerTitle}>Scrap Categories</Text>
                         </View>
@@ -449,12 +632,12 @@ const ScrapCat = ({ navigation }) => {
                                                 <View style={styles.categoryHeader}>
                                                     <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                                         <Text style={styles.categoryTitle}>{ categories.categoryTitle }</Text>
-                                                        <TouchableOpacity>
+                                                        <TouchableOpacity onPress={() => {openEditCategoryHandler(); setCategoryID(categories.categoryID); setTempCategory(categories.categoryTitle);}}>
                                                             <Image style={{width: 16, height: 15,}} source={require("../assets/img/pencil.png")}/>
                                                         </TouchableOpacity>
                                                     </View>
                                                     <View>
-                                                        <TouchableOpacity>
+                                                        <TouchableOpacity onPress={() => {confirmDeleteDialog(categories.categoryID, categories.categoryTitle);}}>
                                                             <Octicons name="trash" size={24} color="#3E5A47" />
                                                         </TouchableOpacity>
                                                     </View>
@@ -493,12 +676,23 @@ const ScrapCat = ({ navigation }) => {
                                                                                 height: 230,
                                                                                 marginLeft: 30,
                                                                             }} key={scrapdata.scrapID}>
-                                                                                <Image style={{
-                                                                                        width: "100%",
-                                                                                        height: 70,
-                                                                                        borderRadius: 8,
-                                                                                        marginBottom: 5,
-                                                                                }} source={require("../assets/img/placeholder.png")}></Image>
+                                                                                {
+                                                                                    scrapdata.scrapImage !== "" ? (
+                                                                                        <Image style={{
+                                                                                            width: "100%",
+                                                                                            height: 70,
+                                                                                            borderRadius: 8,
+                                                                                            marginBottom: 5,
+                                                                                        }} source={{uri: scrapdata.scrapImage}}></Image>
+                                                                                    ) : (
+                                                                                        <Image style={{
+                                                                                            width: "100%",
+                                                                                            height: 70,
+                                                                                            borderRadius: 8,
+                                                                                            marginBottom: 5,
+                                                                                        }} source={require("../assets/img/placeholder.png")}></Image>
+                                                                                    )
+                                                                                }
                                                                                 <Text style={styles.categoryScrap}>{scrapdata.scrapName}</Text>
                                                                                 <View style={styles.categoryContent}>
                                                                                         <Text style={styles.categoryLabel}>Size: </Text>
@@ -509,10 +703,14 @@ const ScrapCat = ({ navigation }) => {
                                                                                     <Text style={styles.categoryText}>{scrapdata.scrapCost}</Text>
                                                                                 </View>
                                                                                 <View style={styles.categoryContent}>
+                                                                                    <Text style={styles.categoryLabel}>Weight: </Text>
+                                                                                    <Text style={styles.categoryText}>{scrapdata.scrapWeight} kg </Text>
+                                                                                </View>
+                                                                                <View style={styles.categoryContent}>
                                                                                     <Text style={styles.categoryLabel}>Quantity: </Text>
                                                                                     <Text style={styles.categoryText}>{scrapdata.scrapQuantity} pieces </Text>
                                                                                 </View>
-                                                                                <TouchableOpacity style={styles.categoryEdit} onPress={() => {setEditState(scrapdata.scrapID, scrapdata.scrapName, scrapdata.scrapSize, scrapdata.scrapCost, scrapdata.scrapQuantity, scrapdata.scrapAddDate, scrapdata.scrapCategory, scrapdata.scrapImage); openEditHandler();}}>
+                                                                                <TouchableOpacity style={styles.categoryEdit} onPress={() => {setEditState(scrapdata.scrapID, scrapdata.scrapName, scrapdata.scrapSize, scrapdata.scrapCost, scrapdata.scrapQuantity, scrapdata.scrapWeight, scrapdata.scrapAddDate, scrapdata.scrapCategory, scrapdata.scrapImage); openEditHandler();}}>
                                                                                     <Image style={{width: 16, height: 15,}}source={require("../assets/img/pencil.png")}></Image>
                                                                                 </TouchableOpacity>
                                                                             </View>
@@ -529,8 +727,15 @@ const ScrapCat = ({ navigation }) => {
                                         )
                                     })
                                 ) : (
-                                    <View>
-                                        <Text>No scrap data yet</Text>
+                                    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+                                        <Text style={{
+                                            color: '#3E5A47',
+                                            fontFamily: 'Inter-SemiBold',
+                                            fontSize: 18,
+                                            marginTop: 50,
+                                            textAlign: 'center',
+                                            width: 300
+                                        }}>You can add a new data by selecting the "Add Category" button above me!</Text>
                                     </View>
                                 )
                             }
@@ -602,7 +807,73 @@ const ScrapCat = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
                     </ScrapAddModal>
-                    <ScrapAddModal activeHeight={height * 0.5} ref={editModalRef} backgroundColor={'white'} backDropColor={'black'}>
+                    <ScrapAddModal activeHeight={Height * 35 / 100} ref={editCategoryModalRef} backgroundColor={'white'} backDropColor={'black'}>
+                        <Text style={{
+                            color: '#3E5A47',
+                            fontFamily: 'Inter-SemiBold',
+                            fontSize: 20,
+                            textAlign: 'center',
+                            marginTop: 10,
+                        }}>Edit Category</Text>
+                        <View style={{alignItems: 'center'}}>
+                            <TextInput
+                                value={tempCategory}
+                                onChangeText={tempCategory => { setTempCategory(tempCategory); }}
+                                placeholder="Scrap Type"
+                                style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontSize: 16,
+                                    textAlign: 'center',
+                                    width: 320,
+                                    paddingBottom: 10,
+                                    borderBottomWidth: 0.7,
+                                    borderBottomColor: '#3E5A47',
+                                    marginTop: 25,
+                                }}
+                            />
+                        </View>
+                        <View style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            marginLeft: 30,
+                            marginRight: 30,
+                            marginTop: 50,
+                        }}>
+                            <TouchableOpacity style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: 16,
+                                borderWidth: 1,
+                                borderColor: '#3E5A47',
+                                width: 100,
+                                height: 39
+                            }} onPress={() => {closeEditCategoryHandler();}}>
+                                <Text style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontSize: 20,
+                                    color: '#3E5A47'
+                                }}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: '#3E5A47',
+                                borderRadius: 16,
+                                width: 82,
+                                height: 39
+                            }} onPress={() => {editCategory(); closeEditCategoryHandler(); editSuccessDialog();}}>
+                            <Text style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontSize: 20,
+                                    color: '#F4F5F4'
+                                }}>Save</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrapAddModal>
+                    <ScrapAddModal activeHeight={Height > 728 ? (Height * 58 / 100) : (Height * 65 / 100)} ref={editModalRef} backgroundColor={'white'} backDropColor={'black'}>
                         <Text style={{
                                 color: '#3E5A47',
                                 fontFamily: 'Inter-SemiBold',
@@ -679,6 +950,23 @@ const ScrapCat = ({ navigation }) => {
                                         }}
                                     />
                                 </View>
+                                <TextInput
+                                    value={scrapWeight}
+                                    keyboardType = 'number-pad'
+                                    onChangeText={scrapweight => { setScrapWeight(scrapweight) }}
+                                    placeholder="Accumulated Weight in kg"
+                                    style={{
+                                        fontFamily: 'Inter-Regular',
+                                        fontSize: 16,
+                                        textAlign: 'center',
+                                        width: Width * 50 / 100,
+                                        paddingBottom: 10,
+                                        borderBottomWidth: 0.7,
+                                        borderBottomColor: '#3E5A47',
+                                        marginTop: 25,
+                                        textAlign: 'center',
+                                    }}
+                                />
                             </View>
                             <View style={{
                                 alignItems: 'center',
@@ -698,8 +986,23 @@ const ScrapCat = ({ navigation }) => {
                                     />
                                 )}
                                 <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', gap: 10}} onPress={pickImage}>
-                                    <MaterialCommunityIcons name="file-image-plus-outline" size={32} color="#3E5A47" />
-                                    <Text style={{fontFamily: 'Inter-Regular', fontSize: 18, textDecorationLine: 'underline', color: '#3E5A47'}}>Upload Image</Text>
+                                    {
+                                        hasImage === true ? (
+                                            <>
+                                                <Text style={{
+                                                    color: '#3E5A47',
+                                                    fontFamily: 'Inter-SemiBold',
+                                                    fontSize: 18,
+                                                }}>Image Uploaded</Text>
+                                                <AntDesign name="checkcircle" size={24} color="#3E5A47" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <MaterialCommunityIcons name="file-image-plus-outline" size={32} color="#3E5A47" />
+                                                <Text style={{fontFamily: 'Inter-Regular', fontSize: 18, textDecorationLine: 'underline', color: '#3E5A47'}}>Upload Image</Text>
+                                            </>
+                                        )
+                                    }
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => {toggleDatePicker();}}>
                                     <MaterialCommunityIcons name="calendar-plus" size={34} color="#3E5A47" />
@@ -737,7 +1040,7 @@ const ScrapCat = ({ navigation }) => {
                                     borderRadius: 16,
                                     width: 82,
                                     height: 39
-                                }} onPress={() => {closeEditHandler(); submitScrapEdit(); clearForm();}}>
+                                }} onPress={() => {closeEditHandler(); submitScrapEdit(); uploadImage(); clearForm();}}>
                                 <Text style={{
                                         fontFamily: 'Inter-Regular',
                                         fontSize: 20,
@@ -746,7 +1049,7 @@ const ScrapCat = ({ navigation }) => {
                                 </TouchableOpacity>
                         </View>
                     </ScrapAddModal>
-                    <ScrapAddModal activeHeight={Height > 728 ? (Height * 50 / 100) : (Height * 55 / 100)} ref={addScrapModalRef} backgroundColor={'white'} backDropColor={'black'}>
+                    <ScrapAddModal activeHeight={Height > 728 ? (Height * 58 / 100) : (Height * 65 / 100)} ref={addScrapModalRef} backgroundColor={'white'} backDropColor={'black'}>
                         <Text style={{
                             color: '#3E5A47',
                             fontFamily: 'Inter-SemiBold',
@@ -823,6 +1126,23 @@ const ScrapCat = ({ navigation }) => {
                                     }}
                                 />
                             </View>
+                            <TextInput
+                                value={scrapWeight}
+                                keyboardType = 'number-pad'
+                                onChangeText={scrapweight => { setScrapWeight(scrapweight) }}
+                                placeholder="Accumulated Weight in kg"
+                                style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontSize: 16,
+                                    textAlign: 'center',
+                                    width: Width * 50 / 100,
+                                    paddingBottom: 10,
+                                    borderBottomWidth: 0.7,
+                                    borderBottomColor: '#3E5A47',
+                                    marginTop: 25,
+                                    textAlign: 'center',
+                                }}
+                            />
                         </View>
                         <View style={{
                             alignItems: 'center',
@@ -842,8 +1162,23 @@ const ScrapCat = ({ navigation }) => {
                                 />
                             )}
                             <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', gap: 10}} onPress={pickImage}>
-                                <MaterialCommunityIcons name="file-image-plus-outline" size={32} color="#3E5A47" />
-                                <Text style={{fontFamily: 'Inter-Regular', fontSize: 18, textDecorationLine: 'underline', color: '#3E5A47'}}>Upload Image</Text>
+                                {
+                                    hasImage === true ? (
+                                        <>
+                                            <Text style={{
+                                                color: '#3E5A47',
+                                                fontFamily: 'Inter-SemiBold',
+                                                fontSize: 18,
+                                            }}>Image Uploaded</Text>
+                                            <AntDesign name="checkcircle" size={24} color="#3E5A47" />
+                                        </>
+                                    ) : (
+                                        <>
+                                            <MaterialCommunityIcons name="file-image-plus-outline" size={32} color="#3E5A47" />
+                                            <Text style={{fontFamily: 'Inter-Regular', fontSize: 18, textDecorationLine: 'underline', color: '#3E5A47'}}>Upload Image</Text>
+                                        </>
+                                    )
+                                }
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => {toggleDatePicker();}}>
                                 <MaterialCommunityIcons name="calendar-plus" size={34} color="#3E5A47" />
@@ -881,7 +1216,7 @@ const ScrapCat = ({ navigation }) => {
                                 borderRadius: 16,
                                 width: 82,
                                 height: 39
-                            }} onPress={() => {closeAddScrapHandler(); submitScrapData(); clearForm();}}>
+                            }} onPress={() => {closeAddScrapHandler(); submitScrapData(); uploadImage(); clearForm();}}>
                             <Text style={{
                                     fontFamily: 'Inter-Regular',
                                     fontSize: 20,

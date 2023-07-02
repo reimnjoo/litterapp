@@ -1,5 +1,5 @@
 import React, {
-    Component, useState
+    Component, useState, useEffect
 } from 'react'
 
 import { 
@@ -21,14 +21,16 @@ import {
     MaterialCommunityIcons
 } from '@expo/vector-icons';
 
+
+
 const ReportALS = ({ navigation }) => {
 
-    // Device Dimension
+    //* Device Dimension
 
     const windowHeight = Dimensions.get('window').height;
     const windowWidth = Dimensions.get('window').width;
 
-    // Back Button + Back-Device Handler
+    //* Back Button + Back-Device Handler
 
     React.useEffect(() => {
         function handleBackButton() {
@@ -41,56 +43,63 @@ const ReportALS = ({ navigation }) => {
         return () => backHandler.remove();
     }, [navigation]);
 
-    // Tab List 
+    //*Tab List 
 
     const tabList = [
         { status: 'Today', statusID: 1 },
         { status: 'This Week', statusID: 2},
     ];
 
-    // Tab State
+    //* Tab State
 
-    const [status, setStatus] = useState("This Week");
+    const [status, setStatus] = useState("Today");
     const setStatusFilter = status => {
         setStatus(status);
     }
 
-    // Today Tab Handler
+    //* Weekdays Data
 
-    const todayReport = [
-        { id: 1, item: 'Plastic', weight: 5, unit: 'kg' },
-        { id: 2, item: 'Paper/Cardboard', weight: 3, unit: 'kg' },
-        { id: 3, item: 'Metal', weight: 12, unit: 'kg' },
-        { id: 4, item: 'Glass', weight: 7, unit: 'kg' },
-        { id: 5, item: 'Electronic Waste', weight: 2, unit: 'kg' },
-        { id: 6, item: 'Textile', weight: 2, unit: 'kg' },
-        { id: 7, item: 'Textile', weight: 2, unit: 'kg' },
-        { id: 8, item: 'Textile', weight: 2, unit: 'kg' },
-        { id: 9, item: 'Textile', weight: 2, unit: 'kg' },
+    const weekdays = [
+        { id: 1, day: 'Sunday'},
+        { id: 2, day: 'Monday'}, 
+        { id: 3, day: 'Tuesday'}, 
+        { id: 4, day: 'Wednesday'}, 
+        { id: 5, day: 'Thursday'}, 
+        { id: 6, day: 'Friday'}, 
+        { id: 7, day: 'Saturday'},  
     ]
 
-    const weekReport = [
-        { id: 1, day: 'Sunday', month: 'May', md: 7, weight: 31, unit: 'kg'},
-        { id: 2, day: 'Monday', month: 'May', md: 8, weight: 42, unit: 'kg'}, 
-        { id: 3, day: 'Tuesday', month: 'May', md: 9, weight: 11, unit: 'kg'}, 
-        { id: 4, day: 'Wednesday', month: 'May', md: 10, weight: 30, unit: 'kg'}, 
-        { id: 5, day: 'Thursday', month: 'May', md: 11, weight: 27, unit: 'kg'}, 
-        { id: 6, day: 'Friday', month: 'May', md: 12, weight: 17, unit: 'kg'}, 
-        { id: 7, day: 'Saturday', month: 'May', md: 13, weight: 28, unit: 'kg'},  
+    const months = [
+        { id: '01', month: 'January'},
+        { id: '02', month: 'February'}, 
+        { id: '03', month: 'March'}, 
+        { id: '04', month: 'April'}, 
+        { id: '05', month: 'May'}, 
+        { id: '06', month: 'June'}, 
+        { id: '07', month: 'July'},
+        { id: '08', month: 'August'},
+        { id: '09', month: 'September'},
+        { id: '10', month: 'October'},
+        { id: '11', month: 'November'},
+        { id: '12', month: 'December'},  
     ]
 
     const TodaysReport = () => {
         return (
             <View style={styles.reportContainer}>
                 {
-                    todayReport.map((report) => {
-                        return (
-                            <View style={styles.reportContent} key={report.id}>
-                                <Text style={styles.reportItem}>{report.item}</Text>
-                                <Text style={styles.reportWeight}>{report.weight} {report.unit}</Text>
-                            </View>
-                        )
-                        })
+                    currentData !== null ? (
+                        currentData.map((report) => {
+                            return (
+                                <View style={styles.reportContent} key={report.scrapID}>
+                                    <Text style={styles.reportItem}>{report.scrapCategory}</Text>
+                                    <Text style={styles.reportWeight}>{report.totalWeight} kg</Text>
+                                </View>
+                            )
+                            })
+                    ) : (
+                        <Text style={styles.reportItem}> (There are no current data for today yet!) </Text>
+                    )
                 }
             </View>
         )
@@ -100,38 +109,153 @@ const ReportALS = ({ navigation }) => {
         return (
             <View style={styles.reportContainer}>
                 {
-                    weekReport.map((report) => {
-                        return (
-                            <View style={styles.reportContent} key={report.id}>
-                                <Text style={styles.reportItem}>{report.day}, {report.month} {report.md}</Text>
-                                <Text style={styles.reportWeight}>{report.weight} {report.unit}</Text>
-                            </View>
-                        )
-                    })
+                    weekData !== null ? (
+                        weekData.map((report) => {
+                            return (
+                                <View style={styles.reportContent} key={report.scrapID}>
+                                    <Text style={styles.reportItem}>{
+                                       report.scrapAddDate.slice(5, 7) === months[Number(report.scrapAddDate.slice(6, 7) - 1)].id ? (
+                                            <Text>{months[Number(report.scrapAddDate.slice(6, 7) - 1)].month}</Text>
+                                        ) : (
+                                            <Text>No Data</Text>
+                                        )
+                                    }, {report.scrapAddDate.slice(8, 10)}</Text>
+                                    <Text style={styles.reportWeight}>{report.totalWeight} kg</Text>
+                                </View>
+                            )
+                        })
+                    ) : (
+                        <Text style={styles.reportItem}> (There are no current data for this week yet!) </Text>
+                    )
                 }
             </View>
         )
     }
+
+    //* Fetch Total Overall Weight of the Scraps
+
+    const [totalScrapWeight, setTotalScrapWeight] = useState([]);
+    
+    const getOverallWeight = () => {
+        return (
+            fetch("https://sseoll.com/scrapWeightData.php")
+            .then(data => {
+                return data.json();
+            })
+            .then(scrapData => {
+                console.log(scrapData);
+                setTotalScrapWeight(scrapData);
+            })
+            .catch(err => {
+                console.log(err);
+            }) 
+            )
+    }
+
+    //* Fetch Total Buyers
+
+    const [totalBuyer, setTotalBuyer] = useState([]);
+
+    const getTotalBuyers = () => {
+        return (
+            fetch("https://sseoll.com/buyerData.php")
+            .then(data => {
+                return data.json();
+            })
+            .then(buyerData => {
+                setTotalBuyer(buyerData);
+            })
+            .catch(err => {
+                console.log(err);
+            }) 
+            )
+    }
+
+    //* Fetch Total Scrap per Category of the Current Day
+
+    const [currentData, setCurrentData] = useState([]);
+
+    const getCurrentData = () => {
+        return (
+            fetch("https://sseoll.com/currentAnalytics.php")
+            .then(data => {
+                return data.json();
+            })
+            .then(scrapData => {
+                setCurrentData(scrapData);
+            })
+            .catch(err => {
+                console.log(err);
+            }) 
+            )
+    }
+
+    //* Fetch Total Scrap per Category of the Current Week
+
+    const [weekData, setWeekData] = useState([]);
+
+    const getWeekData = () => {
+        return (
+            fetch("https://sseoll.com/weekAnalytics.php")
+            .then(data => {
+                return data.json();
+            })
+            .then(scrapData => {
+                console.log(scrapData);
+                setWeekData(scrapData);
+            })
+            .catch(err => {
+                console.log(err);
+            }) 
+            )
+    }
+
+    useEffect(() => {
+        getOverallWeight();
+        getTotalBuyers();
+        getCurrentData();
+        getWeekData();
+    }, []);
 
     return (
         <View style={{flex: 1}}>
             <ImageBackground style={styles.background} source={require("../assets/img/sbg1.png")}></ImageBackground>
             <View style={styles.navbarContainer}>
                     <TouchableOpacity onPress={() => { navigation.goBack();}}>
-                    <Ionicons name="arrow-back" size={24} color="#3E5A47" />
-                </TouchableOpacity>
+                        <Ionicons name="arrow-back" size={24} color="#3E5A47" />
+                    </TouchableOpacity>
                 <Text style={styles.sectionTitle}>Reports & Analytics</Text>
             </View>
             <View style={styles.topStats}>
                 <View style={styles.totalWeight}>
                     <Text style={styles.totalWeightText}>Total Weight (kg)</Text>
                     <Image style={styles.icons} source={require("../assets/img/package.png")}></Image>
-                    <Text style={styles.totalWeightCount}>209</Text>
+                    {
+                        totalScrapWeight !== "" ? (
+                            totalScrapWeight.map(totaldata => {
+                                return (
+                                    <Text style={styles.totalWeightCount}>{totaldata.totalScrapWeight}</Text>
+                                )
+                            })
+                        ) : (
+                            <Text style={styles.totalWeightCount}>0</Text>
+                        )
+                    }
                 </View>
                 <View style={styles.totalBuyer}>
                     <Text style={styles.totalBuyerText}>Buyers</Text>
                     <Image style={styles.icons} source={require("../assets/img/buyerIcon1.png")}></Image>
-                    <Text style={styles.totalBuyerCount}>19</Text>
+                    {
+                        totalBuyer !== null ? (
+                            totalBuyer.map(totaldata => {
+                                return (
+                                    <Text style={styles.totalBuyerCount}>{totaldata.totalBuyer}</Text>
+                                )
+                            })
+                        ) : (
+                            <Text style={styles.totalBuyerCount}> - </Text>
+                        )
+                    }
                 </View>
             </View>
             <View style={styles.tablistContainer}>
@@ -201,7 +325,7 @@ const styles = StyleSheet.create({
     topStats: {
         display: 'flex',
         flexDirection: 'row',
-        justifyContent: 'space-evenly',
+        justifyContent: 'center',
         marginTop: 20
     },
     totalWeight: {

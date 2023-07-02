@@ -77,16 +77,6 @@ const About = ({ navigation }) => {
                             <Text style={styles.teamDesc}>
                                 We're a team of third-year college students from TUP-Manila passionate about sustainability and innovation. Our Litter App simplifies waste management and improves inventory management for junkshops. Thanks for supporting our project!
                             </Text>
-                            <View style={styles.teamGridOne}>
-                                <View style={styles.gridOne}></View>
-                                <View style={styles.gridTwo}></View>
-                                <View style={styles.gridThree}></View>
-                            </View>
-                            <View style={styles.teamGridTwo}>
-                                <View style={styles.gridFour}></View>
-                                <View style={styles.gridFive}></View>
-                                <View style={styles.gridSix}></View>
-                            </View>
                         </View>
                         <Image style={styles.thirdKnot} source={require("../assets/img/knot.png")}/>
                         <Image style={styles.fourthKnot} source={require("../assets/img/knot.png")}/>
@@ -151,7 +141,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderTopLeftRadius: 14,
         borderTopRightRadius: 14,
-        justifyContent: 'center'
+        justifyContent: 'center',
     },
     appTitle: {
         color: '#365540',

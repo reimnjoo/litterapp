@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Alert, Dimensions } from 'react-native'
+import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Alert, Dimensions, ScrollView } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react'
@@ -111,107 +111,107 @@ const RegAuthBuyer = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior="padding"
     >
+      <ScrollView>
+        <View style={styles.inputContainer}>
 
-    <View style={styles.inputContainer}>
+          <Text style={styles.regLabel}>CREATE YOUR ACCOUNT</Text>
 
-        <Text style={styles.regLabel}>CREATE YOUR ACCOUNT</Text>
-
-        <View style={{flexDirection: 'row',}}>
-          <Text style={[styles.inputLabel, {width: '50%'}]}>First Name</Text>
-          <Text style={[styles.inputLabel, {width: '50%'}]}>Last Name</Text>
-        </View>
-        <View style={{flexDirection: 'row'}}>
-          <TextInput
-              value={firstName}
-              onChangeText={firstName => {setFirstName(firstName)}}
-              placeholder="Bogart"
-              autoCorrect={false}
-              style={[styles.input, {width: '45%', marginRight: 20}]}
-          />
-          <TextInput
-              value={lastName}
-              onChangeText={lastName => {setLastName(lastName)}}
-              placeholder="Dela Cruz"
-              autoCorrect={false}
-              style={[styles.input, {width: '50%'}]}
-          />
-        </View>
-        
-        <Text style={styles.inputLabel}>Company</Text>
-        <TextInput
-            value={company}
-            onChangeText={company => {setCompany(company)}}
-            placeholder="Your company"
-            autoCorrect={false}
-            style={styles.input}
-        />
-
-        <Text style={styles.inputLabel}>Location</Text>
-        <TextInput
-            value={location}
-            onChangeText={location => {setLocation(location)}}
-            placeholder="Enter your address"
-            autoCorrect={false}
-            style={styles.input}
-        />
-
-        <Text style={styles.inputLabel}>E-mail</Text>
-        <TextInput
-            value={email}
-            onChangeText={email => {setEmail(email)}}
-            placeholder="Enter your email"
-            autoCorrect={false}
-            style={styles.input}
-        />
-
-        <Text style={styles.inputLabel}>Password</Text>
-        <View>
+          <View style={{flexDirection: 'row',}}>
+            <Text style={[styles.inputLabel, {width: '50%'}]}>First Name</Text>
+            <Text style={[styles.inputLabel, {width: '50%'}]}>Last Name</Text>
+          </View>
+          <View style={{flexDirection: 'row'}}>
             <TextInput
-              value={password}
-              onChangeText={password => {setPassword(password)}}
-              placeholder="Password"
-              style={styles.input}
-              iconPosition="right"
-              secureTextEntry={isSecuredEntry}
+                value={firstName}
+                onChangeText={firstName => {setFirstName(firstName)}}
+                placeholder="Bogart"
+                autoCorrect={false}
+                style={[styles.input, {width: '45%', marginRight: 20}]}
             />
-            <TouchableOpacity style={{
-              position: 'absolute',
-              right: 0,
-            }} onPress={() => {
-              setSecuredEntry((prev) => !prev)
-            }}>
-              <Ionicons name="eye-outline" size={24} color="#3E5A47" />
+            <TextInput
+                value={lastName}
+                onChangeText={lastName => {setLastName(lastName)}}
+                placeholder="Dela Cruz"
+                autoCorrect={false}
+                style={[styles.input, {width: '50%'}]}
+            />
+          </View>
+
+          <Text style={styles.inputLabel}>Company</Text>
+          <TextInput
+              value={company}
+              onChangeText={company => {setCompany(company)}}
+              placeholder="Your company"
+              autoCorrect={false}
+              style={styles.input}
+          />
+
+          <Text style={styles.inputLabel}>Location</Text>
+          <TextInput
+              value={location}
+              onChangeText={location => {setLocation(location)}}
+              placeholder="Enter your address"
+              autoCorrect={false}
+              style={styles.input}
+          />
+
+          <Text style={styles.inputLabel}>E-mail</Text>
+          <TextInput
+              value={email}
+              onChangeText={email => {setEmail(email)}}
+              placeholder="Enter your email"
+              autoCorrect={false}
+              style={styles.input}
+          />
+
+          <Text style={styles.inputLabel}>Password</Text>
+          <View>
+              <TextInput
+                value={password}
+                onChangeText={password => {setPassword(password)}}
+                placeholder="Password"
+                style={styles.input}
+                iconPosition="right"
+                secureTextEntry={isSecuredEntry}
+              />
+              <TouchableOpacity style={{
+                position: 'absolute',
+                right: 0,
+              }} onPress={() => {
+                setSecuredEntry((prev) => !prev)
+              }}>
+                <Ionicons name="eye-outline" size={24} color="#3E5A47" />
+              </TouchableOpacity>
+          </View>
+
+          <View style={styles.regContainer}>
+              <TouchableOpacity style={styles.regButton} onPress={() => {registerBuyer();}}>
+                  <Text style={styles.signInLabel}>Register Now</Text>
+              </TouchableOpacity>
+          </View>
+
+          </View>
+
+
+          {/* <LinearGradient
+          colors={['#8FAB98', '#3E5A47']}
+          style={styles.gradientContainer}
+          start={{ x: 0, y: 0 }} 
+          end={{ x: 0, y: 0.5 }}
+          >
+
+
+          </LinearGradient> */}
+
+          <View style={styles.outerButtonContainer}>
+            <Text style={styles.authTextLabel}>Already have an account?</Text>
+
+            <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate("LogAuthBuyer")}>
+                <Text style={styles.registerText}>Sign-In!</Text>
             </TouchableOpacity>
-        </View>
-
-        <View style={styles.regContainer}>
-            <TouchableOpacity style={styles.regButton} onPress={() => {registerBuyer();}}>
-                <Text style={styles.signInLabel}>Register Now</Text>
-            </TouchableOpacity>
-        </View>
-        
-    </View>
-
-        
-      {/* <LinearGradient
-        colors={['#8FAB98', '#3E5A47']}
-        style={styles.gradientContainer}
-        start={{ x: 0, y: 0 }} 
-        end={{ x: 0, y: 0.5 }}
-      >
-        
-       
-      </LinearGradient> */}
-
-    <View style={styles.outerButtonContainer}>
-        <Text style={styles.authTextLabel}>Already have an account?</Text>
-
-        <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate("LogAuthBuyer")}>
-            <Text style={styles.registerText}>Sign-In!</Text>
-        </TouchableOpacity>
-    </View>
+          </View>
+      </ScrollView>
     </KeyboardAvoidingView>
     
   )

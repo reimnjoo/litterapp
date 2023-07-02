@@ -25,10 +25,27 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Divider } from "@rneui/themed";
 
-// Backend Logic
+//* Device Width x Height
 
-// Login/Reg === Success ? (Database) : (Login/Reg)
-// Overview/Buyer === Login Success? (Retrieve Login from DB to Display Data) : (Login/Reg)
+const Width = Dimensions.get('window').width;
+const Height = Dimensions.get('window').height;
+
+//* Get Month 
+
+const months = [
+  { id: '01', month: 'January'},
+  { id: '02', month: 'February'}, 
+  { id: '03', month: 'March'}, 
+  { id: '04', month: 'April'}, 
+  { id: '05', month: 'May'}, 
+  { id: '06', month: 'June'}, 
+  { id: '07', month: 'July'},
+  { id: '08', month: 'August'},
+  { id: '09', month: 'September'},
+  { id: '10', month: 'October'},
+  { id: '11', month: 'November'},
+  { id: '12', month: 'December'},  
+]
 
 const OverviewBuyer = ({ navigation, route }) => {
 
@@ -84,115 +101,75 @@ const OverviewBuyer = ({ navigation, route }) => {
     );
   };
 
-  // Try
+  //* Fetch Profile Data
 
-  const [image, setImage] = useState(null);
-  const [hasImage, setHasImage] = useState(false);
-
-  const fetchData = async () => {
-    // Temp solution (backend dev, also make use of this in integration with PHP)
-    try {
-      console.log("Fetching data...");
-      const fetchedData = await AsyncStorage.getItem('imgData');
-      if(fetchedData !== null) {
-        console.log("Fetched Data: " + fetchedData);
-        setImage(fetchedData);
-        setHasImage(true);
-      }
-    } catch (error) {
-      console.log("Error while fetching the data: " + error);
-    }
+  const [headerName, setHeaderName] = useState("");
+  const [headerLastName, setHeaderLastName] = useState("");
+  const [image, setImage] = useState("");
+  
+  const getProfileData = () => {
+    return (
+      fetch("https://sseoll.com/fetchBuyerProfile.php", {
+          method: 'POST',
+          headers: {
+          'Accept' : 'application/json',
+          'Content-Type' : 'application/json'
+          },
+      body: JSON.stringify({readcode: 1, userID: userToken}),
+      }).then((response) => {
+          return response.json();
+      }).then((data) => {
+          console.log("Profile Data: ", data[0].firstName);
+          setHeaderName(data[0].firstName);
+          setHeaderLastName(data[0].lastName);
+          setImage(data[0].profileImage);
+      }).catch(err => {
+          console.log(err);
+      })
+    ) 
   }
 
+  //* Fetch Scrap Weekly Data
+
+  const [data, setData] = useState([]);
+
+  //* Get the Current Month
+
+  const month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  const [startMonth, setStartMonth] = useState("");
+  const [endMonth, setEndMonth] = useState("");
+
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const getScrapWeekData = () => {
+    return (
+        fetch("https://sseoll.com/statisticsGraph.php")
+        .then(data => {
+            return data.json();
+        })
+        .then(scrapData => {
+            setData(scrapData);
+            setStartMonth(month[Number(scrapData[0].scrapAddDate.slice(5,7)) - 1]);
+            setEndMonth(month[Number(scrapData[scrapData.length - 1].scrapAddDate.slice(5,7)) - 1]);
+            setStartDate(scrapData[0].scrapAddDate.slice(8,10));
+            setEndDate(scrapData[scrapData.length - 1].scrapAddDate.slice(8,10));
+            console.log("Start Month: ", startMonth);
+            console.log("End Month: ", endMonth);
+        })
+        .catch(err => {
+            console.log(err);
+        }) 
+      )
+  }
+
+
   useEffect(() => {
-    fetchData();
+    getProfileData();
+    getScrapWeekData();
   }, []);
 
-  // Stacked Bar Data
-
-  const data = [
-    { x: "sun", y: 3 },
-    { x: "mon", y: 4 },
-    { x: "tue", y: 2 },
-    { x: "wed", y: 3 },
-    { x: "thu", y: 4 },
-    { x: "fri", y: 2 },
-    { x: "sat", y: 3 },
-  ];
-
-  // Stats Breakdown
-
-  const breakdown = [
-    {
-      id: 1,
-      mm: "May",
-      dd: 7,
-      day: "Sunday",
-      totalWeight: 31,
-    },
-    {
-      id: 2,
-      mm: "May",
-      dd: 8,
-      day: "Monday",
-      totalWeight: 42,
-    },
-    {
-      id: 3,
-      mm: "May",
-      dd: 9,
-      day: "Tuesday",
-      totalWeight: 11,
-    },
-    {
-      id: 4,
-      mm: "May",
-      dd: 10,
-      day: "Wednesday",
-      totalWeight: 30,
-    },
-    {
-      id: 5,
-      mm: "May",
-      dd: 11,
-      day: "Thursday",
-      totalWeight: 27,
-    },
-    {
-      id: 6,
-      mm: "May",
-      dd: 12,
-      day: "Friday",
-      totalWeight: 17,
-    },
-    {
-      id: 7,
-      mm: "May",
-      dd: 13,
-      day: "Saturday",
-      totalWeight: 28,
-    },
-  ];
-
-  // Chart Legend Data
-
-  const legend = [
-    {
-        itemId: 1,
-        material: "plastic",
-        color: "#E9D985"
-    },
-    {
-        itemId: 2,
-        material: "metal",
-        color: "#FF7961"
-    },
-    {
-        itemId: 3,
-        material: "textile",
-        color: "#FFC7C7"
-    }
-  ]
 
   // Note: All data used for the bar chart are temporary.
 
@@ -216,12 +193,12 @@ const OverviewBuyer = ({ navigation, route }) => {
               >
                 <TouchableOpacity onPress={() => {navigation.navigate("BuyerProfile")}}>
                   {
-                    hasImage === true ? 
+                    image !== null ?
                       (<Image style={styles.pfp} source={{uri: image}}></Image>) : 
                       (<Image style={styles.pfp} source={require('../assets/img/pfp.jpg')}></Image>)
                   }
                 </TouchableOpacity>
-                <Text style={styles.profileName}>Hey, Aladiah</Text>
+                <Text style={styles.profileName}>Hey, {headerName}</Text>
               </View>
               <TouchableOpacity
                 style={styles.logoutButton}
@@ -270,19 +247,32 @@ const OverviewBuyer = ({ navigation, route }) => {
             }}
           />
           <View style={styles.statsContainer}>
-            {breakdown.map((data) => {
-              return (
-                <View
-                  style={{ marginLeft: 20, marginRight: 20, marginBottom: 20 }}
-                  key={data.id}
-                >
-                  <Text style={styles.statDate}>
-                    {data.day}, {data.mm} {data.dd}
-                  </Text>
-                  <Text style={styles.statWeight}>{data.totalWeight} kg</Text>
+            {
+              data !== null ? (
+                data.map((data) => {
+                  return (
+                    <View
+                      style={{ marginLeft: 20, marginRight: 20, marginBottom: 20 }}
+                      key={data.scrapID}
+                    >
+                      <Text style={styles.statDate}>
+                        {data.scrapDayAdded}, {startMonth} {data.scrapAddDate.slice(8,10)}
+                      </Text>
+                      <Text style={styles.statWeight}>{data.totalWeight} kg</Text>
+                    </View>
+                  );
+                })
+              ) : (
+                <View style={{position: 'absolute', width: 200, top: 120, left: 110}}>
+                  <Text style={{
+                    color: '#3E5A47',
+                    fontFamily: 'Inter-SemiBold',
+                    fontSize: 16,
+                    textAlign: 'center',
+                  }}>There are no available scrap information for this week.</Text>
                 </View>
-              );
-            })}
+              )
+            }
           </View>
           <View
             style={{
@@ -308,7 +298,11 @@ const OverviewBuyer = ({ navigation, route }) => {
                 color: "#627D6B",
               }}
             >
-              May 7 - May 13 Scrap Statistics
+            {!startMonth && !startDate && !endMonth && !endDate ? (
+              <Text>Monthly</Text>
+            ) : (
+              startMonth + " " + startDate + " " + "-" + " " + endMonth + " " + endDate
+            )} Scrap Statistics
             </Text>
           </View>
           <View style={styles.graphContainer}>
@@ -319,39 +313,59 @@ const OverviewBuyer = ({ navigation, route }) => {
                 color: '#5E5E5E',
                 transform: [{ rotate: '90deg'}],
                 top: 160,
-                left: 285
+                left: Width > 380 ? 280 : 235
             }}>weight of scrap per type</Text>
             <VictoryChart
               style={styles.chart}
               theme={VictoryTheme.material}
-              padding={60}
-              domainPadding={20}
+              padding={{top: 60, bottom: 60, left: 60, right: 60}}
+              domain={{y: [0, 50]}}
+              domainPadding={30}
             >
-              <VictoryStack
+              <VictoryStack 
                 style={styles.chartStack}
-                colorScale={["#E9D985", "#FF7961", "#FFC7C7"]}
               >
-                {data.map((dataGraph, index) => {
-                  // console.log(data[index]);
-                  return <VictoryBar key={index} data={data} />;
-                })}
+                {
+                  data !== null ? (
+                    data.map(scrapdata => {
+                      return (
+                        <VictoryBar color={scrapdata.scrapColor} key={parseInt(scrapdata.scrapID)} data={[{x: scrapdata.scrapDayAdded, y: parseInt(scrapdata.totalWeight)}]}/>
+                      )
+                    })
+                  ) : (
+                    <></>
+                  )
+                }
               </VictoryStack>
             </VictoryChart>
             <View style={styles.chartLegend}>
                 {
-                    legend.map((data) => {
-                        return(
-                            <View key={data.itemId}>
-                                <View style={{
-                                    width: 41,
-                                    height: 13,
-                                    backgroundColor: data.color,
-                                    margin: 10
-                                }}/>
-                                <Text style={{textAlign: 'center'}}>{data.material}</Text>
-                            </View>
-                        )
-                    })
+                    data !== null ? (
+                      <>
+                        {
+                          data.map((data) => {
+                            return(
+                                  <View key={parseInt(data.scrapID)}>
+                                      <View style={{
+                                          width: 41,
+                                          height: 13,
+                                          backgroundColor: data.scrapColor,
+                                          margin: 10
+                                      }}/>
+                                      <Text style={{textAlign: 'center'}}>{data.scrapCategory}</Text>
+                                  </View>
+                              )
+                          })
+                        }
+                      </>
+                    ) : (
+                      <Text style={{
+                        color: '#3E5A47',
+                        fontFamily: 'Inter-SemiBold',
+                        fontSize: 12,
+                        textAlign: 'center'
+                      }}>No scrap data yet!</Text>
+                    )
                 }
             </View>
           </View>
@@ -404,10 +418,12 @@ const styles = StyleSheet.create({
     height: 34,
   },
   statsContainer: {
-    display: "flex",
     flexWrap: "wrap",
+    alignItems: 'flex-start',
+    width: '100%',
     height: 320,
-    paddingTop: 20,
+    paddingTop: 30,
+    paddingLeft: 10,
   },
   statDate: {
     fontFamily: "Inter-Regular",
@@ -436,8 +452,9 @@ const styles = StyleSheet.create({
   chartLegend: {
     display: 'flex',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     width: '94%',
     borderColor: '#989E9A',
     borderRadius: 20,

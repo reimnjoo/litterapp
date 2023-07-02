@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Alert } from 'react-native'
+import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Alert, Dimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react'
@@ -6,6 +6,11 @@ import React, { useState, useEffect } from 'react'
 // Auth Context Import
 
 import { AuthContext } from './context';
+
+// Screen Width and Height 
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 const LoginAuth = ({ navigation }) => {
 
@@ -187,8 +192,10 @@ const styles = StyleSheet.create({
   },
   ellipse: {
     position: 'absolute',
+    top: windowHeight * -20 / 100,
     top: 0,
     left: 0,
+    right: 0
   },
   gradientContainer: {
     borderBottomLeftRadius: 44,
@@ -199,7 +206,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#F4F5F4',
     textAlign: 'center',
-    paddingTop: 300,
+    paddingTop: windowHeight * 25 / 100,
     marginBottom: 20,
   },
   inputContainer: {
@@ -257,7 +264,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
-    paddingTop: 30,
+    paddingTop: windowHeight > 728 ? (windowHeight * 10 / 100) : (windowHeight * 5 / 100),
   },
   authTextLabel: {
     fontFamily: 'Inter-SemiBold',

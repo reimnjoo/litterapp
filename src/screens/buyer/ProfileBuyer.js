@@ -1,10 +1,29 @@
 import React, { Component, useEffect, useState } from "react";
 import * as ImagePicker from 'expo-image-picker';
-import { View, Text, StyleSheet, BackHandler, TouchableOpacity, Image, TextInput, Alert } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { View, Text, StyleSheet, BackHandler, TouchableOpacity, Image, TextInput, Alert, ScrollView } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 
-const ProfileBuyer = ({ navigation }) => {
+const ProfileBuyer = ({ navigation, route }) => {
+
+  // Owner Data State Hooks
+
+  // Input State Hooks
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [company, setCompany] = useState('');
+  const [location, setLocation] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [imageFile, setImageFile] = useState([]);
+  const [image, setImage] = useState("");
+  const [finalImage, setFinalImage] = useState("");
+
+  // User Token
+
+  const { userToken } = route.params;
+
+  console.log("usertoken post-login (profile page): " + userToken)
 
   // Back Handler
 
@@ -23,65 +42,73 @@ const ProfileBuyer = ({ navigation }) => {
     };
   }, []);
 
-  // Input State Hooks
 
-  const [name, setName] = useState('');
-  const [company, setCompany] = useState('');
-  const [location, setLocation] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  useEffect(() => {
+    getProfileData();
+  }, [])
 
   // Show/Hide Password State
 
   const [isSecuredEntry, setSecuredEntry] = useState(true);
 
-  // Handle Image Upload
-
-  // Handle Image State Hooks & Permission
-
-  const [hasGalleryPermission, setHasGalleryPermission] = useState(null);
-  const [image, setImage] = useState(null);
-  const [hasImage, setHasImage] = useState(false);
-  
   // Alert Hook State
 
   const [showBox, setShowBox] = useState(true);
 
-  useEffect(() => {
-    (async () => {
-      const galleryStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      setHasGalleryPermission(galleryStatus.status === 'granted');
-    })();
-  }, [])
+  //* Image Uploading and Fetch
 
-  // API for uploading profile image
+  const pickImage = async () => {
 
-  const uploadImage = async (uploadStatus) => {
+    // No permissions request is necessary for launching the image library
 
-    if(uploadStatus === true) {
-      storeImage(image);
-      navigation.goBack();
-    } else {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4,3],
-        quality: 1,
-      });
-  
-      setImage(result.uri); // Initial upload
-      setHasImage(true);
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+            base64: true,
+        });
+
+        let finalResult = {...result.assets[0], fileName: "image/profileImg/" + result.uri.substring(result.uri.lastIndexOf('/') + 1, result.uri.length)}
+        let imageUri = "https://www.sseoll.com/image/profileImg/" + result.uri.substring(result.uri.lastIndexOf('/') + 1, result.uri.length);
+
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
+            setFinalImage(imageUri);
+            setImageFile(finalResult);
+        } 
+    };
+
+    const uploadImage = () => {
+        // console.log("Image Data : ", imagedata)
+
+        let dataImage = {
+            method: 'POST',
+            body: JSON.stringify({
+                image: imageFile,
+            }),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        };
+
+        return fetch('https://sseoll.com/imageUpload.php', dataImage)
+               .then(response => response.json())
+               .then(json => {
+                    console.log('Result: ', json)
+               })
+               .catch(err => {
+                    console.log('Error: ', err);
+               })
     }
-    
-  }
 
-  // Permission Handler
+    const getImage = () => {
+      return image
+    };
 
-  if(hasGalleryPermission === false) {
-    return <Text>No device permission!</Text>
-  }
-
-  // Back Button Handler & Profile Changes Handler
+  
+  //* Back Button Handler & Profile Changes Handler
 
   const showConfirmDialog = () => {
     return Alert.alert(
@@ -102,7 +129,7 @@ const ProfileBuyer = ({ navigation }) => {
     );
   };
 
-  // Profile Update Handler
+  //* Update Dialogue Handler
 
   const updateDialog = () => {
     return Alert.alert(
@@ -113,14 +140,18 @@ const ProfileBuyer = ({ navigation }) => {
           text: "Yes",
           onPress: () => {
             setShowBox(false);
-            uploadImage(true);
+            updateProfile();
+            uploadImage();
+            navigation.navigate("BuyerOverview");
+            // navigation.goBack();
           }
         },
         {
           text: "No",
           onPress: () => {
             setShowBox(false);
-            navigation.goBack();
+            navigation.navigate("BuyerOverview");
+            // navigation.goBack();
           }
         }
       ]
@@ -132,7 +163,7 @@ const ProfileBuyer = ({ navigation }) => {
     return true;
   }
 
-  // Back Handler
+  //* Back Button Handler
 
   function handleBackButtonClick() {
     showConfirmDialog();
@@ -149,124 +180,157 @@ const ProfileBuyer = ({ navigation }) => {
     };
   }, []);
 
+  //* Fetch Profile Data
 
-  // Temporary Async Storage (since there are no databases yet)
-
-  // Save Image Data 
-
-  const storeImage = async (data) => {
-    try {
-      console.log("Saving data: " + data);
-      await AsyncStorage.setItem('imgData', data)
-    } catch (error) {
-      console.log("Error saving data: " + error);
-    }
-    console.log("Data saved: " + data);
+  const getProfileData = () => {
+    return (
+      fetch("https://sseoll.com/fetchBuyerProfile.php", {
+          method: 'POST',
+          headers: {
+          'Accept' : 'application/json',
+          'Content-Type' : 'application/json'
+          },
+      body: JSON.stringify({readcode: 1, userID: userToken}),
+      }).then((response) => {
+          return response.json();
+      }).then((data) => {
+          console.log("Profile Data: ", data);
+          setFirstName(data[0].firstName);
+          setLastName(data[0].lastName);
+          setCompany(data[0].company);
+          setLocation(data[0].location);
+          setEmail(data[0].email);
+          setPassword(data[0].password);
+          setImage(data[0].profileImage);
+          setFinalImage(data[0].profileImage);
+      }).catch(err => {
+          console.log(err);
+      })
+    ) 
   }
 
-  // Fetch Image Data on Application Render
+  //* Update Profile
 
-
-  const fetchData = async () => {
-    // Temp solution (backend dev, also make use of this in integration with PHP)
-    try {
-      console.log("Fetching data...");
-      const fetchedData = await AsyncStorage.getItem('imgData');
-      if(fetchedData !== null) {
-        console.log("Fetched Data: " + fetchedData);
-        setImage(fetchedData);
-        setHasImage(true);
-      }
-    } catch (error) {
-      console.log("Error while fetching the data: " + error);
-    }
+  const profileEditForm = {
+    userID: userToken,
+    firstName: firstName,
+    lastName: lastName,
+    company: company,
+    location: location,
+    email: email,
+    password: password,
+    image: finalImage,
   }
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const updateProfile = () => {
+    console.log(profileEditForm);
+    fetch("https://sseoll.com/updateBuyerProfile.php", {
+        method: 'POST',
+        headers: {
+        'Accept' : 'application/json',
+        'Content-Type' : 'application/json'
+        },
+    body: JSON.stringify(profileEditForm),
+    }).then((response) => {
+        return response.text();
+    }).then((data) => {
+        console.log(data);
+    }).catch(err => {
+        console.log(err);
+    }) 
+  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.profileHeader}>
-        <View style={styles.headerTabs}>
-            <TouchableOpacity onPress={() => {showConfirmDialog();}}>
-                <Ionicons name="arrow-back" size={24} color="#F4F5F4" />
-            </TouchableOpacity>
-            <Text style={styles.headerText}>Edit Profile</Text>
-            <Image source={require('../assets/img/edit.png')}></Image>
+      <ScrollView>
+        <View style={styles.profileHeader}>
+          <View style={styles.headerTabs}>
+              <TouchableOpacity onPress={() => {showConfirmDialog();}}>
+                  <Ionicons name="arrow-back" size={24} color="#F4F5F4" />
+              </TouchableOpacity>
+              <Text style={styles.headerText}>Edit Profile</Text>
+              <Image source={require('../assets/img/edit.png')}></Image>
+          </View>
+          <View style={styles.imageContainer}>
+              <TouchableOpacity onPress={() => {pickImage();}}>
+                {
+                  image === null ?
+                  (<Image style={styles.pfp} source={require('../assets/img/pfp.jpg')}></Image>) :
+                  (<Image style={styles.pfp} source={{uri: getImage()}}></Image>)
+                }
+              </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.imageContainer}>
-            <TouchableOpacity onPress={() => {uploadImage();}}>
-              {
-                hasImage === true ? 
-                (<Image style={styles.pfp} source={{uri: image}}></Image>) : 
-                (<Image style={styles.pfp} source={require('../assets/img/pfp.jpg')}></Image>)
-              }
-            </TouchableOpacity>
-        </View>
-      </View>
-      <View style={styles.profileDetails}>
-        <Text style={styles.inputLabel}>Full Name</Text>
-        <TextInput
-            value={name}
-            onChangeText={name => {setName(name)}}
-            placeholder="Ex. Borgart Dela Cruz"
-            autoCorrect={false}
-            style={styles.input}
-        />
-        <Text style={styles.inputLabel}>Company</Text>
-        <TextInput
-            value={company}
-            onChangeText={company => {setCompany(company)}}
-            placeholder="Your company"
-            autoCorrect={false}
-            style={styles.input}
-        />
-        <Text style={styles.inputLabel}>Location</Text>
-        <TextInput
-            value={location}
-            onChangeText={location => {setLocation(location)}}
-            placeholder="Enter your address"
-            autoCorrect={false}
-            style={styles.input}
-        />
-        <Text style={styles.inputLabel}>E-mail</Text>
-        <TextInput
-            value={email}
-            onChangeText={email => {setEmail(email)}}
-            placeholder="Enter your email"
-            autoCorrect={false}
-            style={styles.input}
-        />
-        <Text style={styles.inputLabel}>Password</Text>
-        <View>
-            <TextInput
-              value={password}
-              onChangeText={password => {setPassword(password)}}
-              placeholder="Password"
+        <View style={styles.profileDetails}>
+          <Text style={styles.inputLabel}>First Name</Text>
+          <TextInput
+              value={firstName}
+              onChangeText={name => {setFirstName(name)}}
+              placeholder="Ex. Borgart"
+              autoCorrect={false}
               style={styles.input}
-              iconPosition="right"
-              secureTextEntry={isSecuredEntry}
-            />
-            <TouchableOpacity style={{
-              position: 'absolute',
-              right: 0,
-            }} onPress={() => {
-              setSecuredEntry((prev) => !prev)
-            }}>
-              <Ionicons name="eye-outline" size={24} color="#3E5A47" />
+          />
+          <Text style={styles.inputLabel}>Last Name</Text>
+          <TextInput
+              value={lastName}
+              onChangeText={name => {setLastName(name)}}
+              placeholder="Ex. Dela Cruz"
+              autoCorrect={false}
+              style={styles.input}
+          />
+          <Text style={styles.inputLabel}>Store Name</Text>
+          <TextInput
+              value={company}
+              onChangeText={company => {setCompany(company)}}
+              placeholder="Your company"
+              autoCorrect={false}
+              style={styles.input}
+          />
+          <Text style={styles.inputLabel}>Location</Text>
+          <TextInput
+              value={location}
+              onChangeText={location => {setLocation(location)}}
+              placeholder="Enter your address"
+              autoCorrect={false}
+              style={styles.input}
+          />
+          <Text style={styles.inputLabel}>E-mail</Text>
+          <TextInput
+              value={email}
+              onChangeText={email => {setEmail(email)}}
+              placeholder="Enter your email"
+              autoCorrect={false}
+              style={styles.input}
+          />
+          <Text style={styles.inputLabel}>Password</Text>
+          <View>
+              <TextInput
+                value={password}
+                onChangeText={password => {setPassword(password)}}
+                placeholder="Password"
+                style={styles.input}
+                iconPosition="right"
+                secureTextEntry={isSecuredEntry}
+              />
+              <TouchableOpacity style={{
+                position: 'absolute',
+                right: 0,
+              }} onPress={() => {
+                setSecuredEntry((prev) => !prev)
+              }}>
+                <Ionicons name="eye-outline" size={24} color="#3E5A47" />
+              </TouchableOpacity>
+          </View>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => {showConfirmDialog();}}>
+              <Text style={styles.cancelLabel}>Cancel</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.saveButton} onPress={() => {handleUpdateClick();}}>
+              <Text style={styles.saveLabel}>Save Changes</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => {showConfirmDialog();}}>
-            <Text style={styles.cancelLabel}>Cancel</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.saveButton} onPress={() => {handleUpdateClick();}}>
-            <Text style={styles.saveLabel}>Save Changes</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      </ScrollView>
     </View>
   );
 };

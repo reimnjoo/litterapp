@@ -1,7 +1,7 @@
 // Main Component Imports
 
 import React, {
-    Component
+    Component, useEffect, useState
 } from 'react'
 
 import { 
@@ -11,7 +11,9 @@ import {
     TouchableOpacity,
     Image,
     BackHandler,
-    ImageBackground
+    ImageBackground,
+    SafeAreaView,
+    ScrollView
 } from 'react-native'
 
 // Icon Component Imports
@@ -37,111 +39,148 @@ const Inventory = ({ navigation }) => {
         return () => backHandler.remove();
     }, [navigation]);
 
-    // Temporary Inventory Data (JSON Format -- to be used for backend)
 
-    const sampleData = [
-        { scrapType: 'Plastic', totalWeight: 27, unit: 'kg' },
-        { scrapType: 'Paper/Cardboard', totalWeight: 86, unit: 'kg' },
-        { scrapType: 'Metal', totalWeight: 5, unit: 'kg' },
-        { scrapType: 'Glass', totalWeight: 52, unit: 'kg' },
-        { scrapType: 'Electronic Waste', totalWeight: 9, unit: 'kg' },
-        { scrapType: 'Textile', totalWeight: 30, unit: 'kg' },
-    ]
+    //* Fetch Inventory Data
 
+    const [inventoryData, setInventoryData] = useState([]);
+
+    const getInventoryData = () => {
+        return (
+            fetch("https://sseoll.com/scrapInventory.php")
+            .then(data => {
+                return data.json();
+            })
+            .then(scrapData => {
+                console.log(scrapData);
+                setInventoryData(scrapData);
+            })
+            .catch(err => {
+                console.log(err);
+            }) 
+            )
+    }
+
+    useEffect(() => {
+        getInventoryData();
+    }, [])
     // Main Inventory Component
 
     return (
         <View>
-            <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 60, paddingLeft: 20, paddingRight: 20}}>
-                <TouchableOpacity onPress={() => { navigation.goBack();}}>
-                    <Ionicons name="arrow-back" size={24} color="#3E5A47"/>
-                </TouchableOpacity>
-                <Text style={{fontFamily: 'Inter-SemiBold', fontSize: 36, color: '#3E5A47'}}>Inventory</Text>
-            </View>
-                <View style={{
-                    alignItems: 'center',
-                    marginTop: 30
-                }}>
-                    <View style={{
-                        flexDirection: 'row',
-                        width: 325,
-                    }}>
-                    <View style={{
-                        alignItems: 'center',
-                        borderLeftWidth: 1,
-                        borderTopWidth: 1,
-                        borderBottomWidth: 1,
-                        borderTopLeftRadius: 20,
-                        borderBottomLeftRadius: 20,
-                        width: '50%',
-                        paddingBottom: 50
-                    }}>
-                        <Text style={{
-                            color: '#3E5A47',
-                            fontFamily: 'Inter-Medium',
-                            fontSize: 12,
-                            marginTop: 20
-                        }}>Types</Text>
-                        {
-                            sampleData.map((inventory) => {
-                                return (
-                                    <View style={{alignItems: 'center', height: 50, marginTop: 40}}>
-                                        <Image source={require("../assets/img/default_inventory_icon.png")}/>
-                                        <Text style={{
-                                            color: '#3E5A47',
-                                            fontFamily: 'Inter-Bold',
-                                            fontSize: 12,
-                                            textAlign: 'center',
-                                            width: 90,
-                                            marginTop: 2,
-                                        }}>{inventory.scrapType}</Text>
-                                    </View>
-                                )
-                            })
-                        }
+            <SafeAreaView>
+                <ScrollView>
+                    <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 60, paddingLeft: 20, paddingRight: 20}}>
+                    <TouchableOpacity onPress={() => { navigation.goBack();}}>
+                        <Ionicons name="arrow-back" size={24} color="#3E5A47"/>
+                    </TouchableOpacity>
+                    <Text style={{fontFamily: 'Inter-SemiBold', fontSize: 36, color: '#3E5A47'}}>Inventory</Text>
                     </View>
-                    <View style={{
-                        width: '50%',
-                        paddingBottom: 50
-                    }}>
-                        <ImageBackground source={require("../assets/img/inventory_radial_bg.png")} style={{
-                            position: 'absolute',
-                            top: 0,
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                        }}
-                        imageStyle={{
-                            borderTopRightRadius: 20,
-                            borderBottomRightRadius: 20,
+                        <View style={{
+                            alignItems: 'center',
+                            marginTop: 30
                         }}>
                             <View style={{
+                                flexDirection: 'row',
+                                width: 325,
+                            }}>
+                            <View style={{
                                 alignItems: 'center',
+                                borderLeftWidth: 1,
+                                borderTopWidth: 1,
+                                borderBottomWidth: 1,
+                                borderTopLeftRadius: 20,
+                                borderBottomLeftRadius: 20,
+                                width: '40%',
+                                paddingBottom: 50
                             }}>
                                 <Text style={{
-                                    color: '#F4F5F4',
+                                    color: '#3E5A47',
                                     fontFamily: 'Inter-Medium',
                                     fontSize: 12,
                                     marginTop: 20
-                                }}>Total Weight (kg)</Text>
+                                }}>Types</Text>
                                 {
-                                    sampleData.map((inventory) => {
-                                        return (
-                                            <Text style={{
-                                                color: '#F4F5F4',
-                                                fontFamily: 'Inter-SemiBold',
-                                                fontSize: 32,
-                                                height: 50,
-                                                marginTop: 40
-                                            }}>{inventory.totalWeight}</Text>
-                                        )
-                                    })
+                                    inventoryData !== null ? (
+                                        inventoryData.map((inventory) => {
+                                            return (
+                                                <View style={{alignItems: 'center', height: 50, marginTop: 40}}>
+                                                    <Image source={require("../assets/img/default_inventory_icon.png")}/>
+                                                    <Text style={{
+                                                        color: '#3E5A47',
+                                                        fontFamily: 'Inter-Bold',
+                                                        fontSize: 12,
+                                                        textAlign: 'center',
+                                                        width: 90,
+                                                        marginTop: 2,
+                                                    }}>{inventory.scrapCategory}</Text>
+                                                </View>
+                                            )
+                                        })
+                                    ) : (
+                                        <Text style={{
+                                            color: '#3E5A47',
+                                            fontFamily: 'Inter-SemiBold',
+                                            fontSize: 32,
+                                            height: 50,
+                                            marginTop: 40
+                                        }}> - </Text>
+                                    )
                                 }
                             </View>
-                        </ImageBackground>
+                            <View style={{
+                                width: '60%',
+                                paddingBottom: 50
+                            }}>
+                                <ImageBackground source={require("../assets/img/inventory_radial_bg.png")} style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                }}
+                                imageStyle={{
+                                    borderTopRightRadius: 20,
+                                    borderBottomRightRadius: 20,
+                                }}>
+                                    <View style={{
+                                        alignItems: 'center',
+                                    }}>
+                                        <Text style={{
+                                            color: '#F4F5F4',
+                                            fontFamily: 'Inter-Medium',
+                                            fontSize: 12,
+                                            marginTop: 20
+                                        }}>Total Weight (kg)</Text>
+                                        {
+                                            inventoryData !== null ? (
+                                                inventoryData.map((inventory) => {
+                                                    return (
+                                                        <Text style={{
+                                                            color: '#F4F5F4',
+                                                            fontFamily: 'Inter-SemiBold',
+                                                            fontSize: 32,
+                                                            height: 50,
+                                                            marginTop: 40
+                                                        }}>{inventory.totalWeight}</Text>
+                                                    )
+                                                })
+                                            ) : (
+                                                <Text style={{
+                                                    color: '#F4F5F4',
+                                                    fontFamily: 'Inter-SemiBold',
+                                                    fontSize: 32,
+                                                    height: 50,
+                                                    marginTop: 40
+                                                }}> - </Text>
+                                            )
+                                        }
+                                    </View>
+                                </ImageBackground>
+                            </View>
+                        </View>
                     </View>
-                </View>
-            </View>
+                </ScrollView>
+            </SafeAreaView>
         </View>
     )
 }

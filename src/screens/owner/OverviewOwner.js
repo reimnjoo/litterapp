@@ -1,4 +1,4 @@
-// Main Component Imports
+//* Main Component Imports
 
 import React, { useEffect, useState } from "react";
 import {
@@ -12,9 +12,10 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  RefreshControl
 } from "react-native";
 
-// Linear Gradient and Chart Component Imports
+//* Linear Gradient and Chart Component Imports
 
 import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../auth/context";
@@ -26,23 +27,24 @@ import {
   VictoryAxis,
   VictoryTheme,
   VictoryLegend,
+  VictoryZoomContainer
 } from "victory-native";
 
-// Icon Component Imports
+//* Icon Component Imports
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Divider } from "@rneui/themed";
+import { useIsFocused } from "@react-navigation/native";
 
-// Backend Logic
+//? Backend Logic
 
-// Login/Reg === Success ? (Database) : (Login/Reg)
-// Overview/Buyer === Login Success? (Retrieve Login from DB to Display Data) : (Login/Reg)
+//? Login/Reg === Success ? (Database) : (Login/Reg)
+//? Overview/Buyer === Login Success? (Retrieve Login from DB to Display Data) : (Login/Reg)
 
-// Device Width x Height
+//* Device Width x Height
 
-  const Width = Dimensions.get('window').width;
-  const Height = Dimensions.get('window').height;
+const Width = Dimensions.get('window').width;
+const Height = Dimensions.get('window').height;
 
 const OverviewBuyer = ({ navigation, route }) => {
 
@@ -73,14 +75,15 @@ const OverviewBuyer = ({ navigation, route }) => {
     };
   }, []);
 
-  // State Hooks
+  //* State Hooks
 
   const [showBox, setShowBox] = useState(true);
   const [sideBar, setSideBar] = useState("none");
   const [navBar, setNavBar] = useState("flex");
-  //   const [overflows, setOverflows] = useState("visible");
 
-  // Alert Handler (Device Back button logout handler)
+  //!   const [overflows, setOverflows] = useState("visible");
+
+  //* Alert Handler (Device Back button logout handler)
 
   const showConfirmDialog = () => {
     return Alert.alert(
@@ -101,126 +104,153 @@ const OverviewBuyer = ({ navigation, route }) => {
     );
   };
 
-  // Profile Image Handlers (including image state)
 
-  const [image, setImage] = useState(null);
-  const [hasImage, setHasImage] = useState(false);
+  //* Fetch Profile Data
 
-  const fetchData = async () => {
-    try {
-      console.log("Fetching data...");
-      const fetchedData = await AsyncStorage.getItem('imgData');
-      if(fetchedData !== null) {
-        console.log("Fetched Data: " + fetchedData);
-        setImage(fetchedData);
-        setHasImage(true);
-      }
-    } catch (error) {
-      console.log("Error while fetching the data: " + error);
-    }
+  const [headerName, setHeaderName] = useState("");
+  const [headerLastName, setHeaderLastName] = useState("");
+  const [image, setImage] = useState("");
+  
+  const getProfileData = () => {
+    return (
+      fetch("https://sseoll.com/fetchOwnerProfile.php", {
+          method: 'POST',
+          headers: {
+          'Accept' : 'application/json',
+          'Content-Type' : 'application/json'
+          },
+      body: JSON.stringify({readcode: 1, userID: userToken}),
+      }).then((response) => {
+          return response.json();
+      }).then((data) => {
+          console.log("Profile Data: ", data[0].firstName);
+          setHeaderName(data[0].firstName);
+          setHeaderLastName(data[0].lastName);
+          setImage(data[0].profileImage);
+      }).catch(err => {
+          console.log(err);
+      })
+    ) 
   }
 
-  // useEffect for fetchAPI
+  //* Fetch Scrap Weekly Data
+
+  const [data, setData] = useState([]);
+
+  //* Get the Current Month
+
+  const month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  const [startMonth, setStartMonth] = useState("");
+  const [endMonth, setEndMonth] = useState("");
+
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const getScrapWeekData = () => {
+    return (
+        fetch("https://sseoll.com/statisticsGraph.php")
+        .then(data => {
+            return data.json();
+        })
+        .then(scrapData => {
+            setStartMonth(month[Number(scrapData[0].scrapAddDate.slice(5,7)) - 1]);
+            setEndMonth(month[Number(scrapData[scrapData.length - 1].scrapAddDate.slice(5,7)) - 1]);
+            setStartDate(scrapData[0].scrapAddDate.slice(8,10));
+            setEndDate(scrapData[scrapData.length - 1].scrapAddDate.slice(8,10));
+            console.log("Start Month: ", startMonth);
+            console.log("End Month: ", endMonth);
+            setData(scrapData);
+        })
+        .catch(err => {
+            console.log(err);
+        }) 
+      )
+  }
+
+  //* Fetch Overview Stats
+
+  const [todayScrapsTotal, setTodayScrapsTotal] = useState([]);
+
+  const getTodayTotal = () => {
+    return (
+      fetch("https://sseoll.com/overviewScraps.php", {
+          method: 'POST',
+          headers: {
+          'Accept' : 'application/json',
+          'Content-Type' : 'application/json'
+          },
+      body: JSON.stringify({readcode: 1}),
+      }).then((response) => {
+          return response.json();
+      }).then((data) => {
+          console.log("todays scraps: ", data);
+          setTodayScrapsTotal(data);
+      }).catch(err => {
+          console.log(err);
+      })
+    ) 
+  }
+
+  //* Inventory Level Count 
+  
+  const [inventoryLevel, setInventoryLevel] = useState(0);
+  const [overallScrapTotal, setOverallScrapTotal] = useState([]);
+
+  const getTotalScraps = () => {
+    return (
+      fetch("https://sseoll.com/overviewScraps.php", {
+          method: 'POST',
+          headers: {
+          'Accept' : 'application/json',
+          'Content-Type' : 'application/json'
+          },
+      body: JSON.stringify({readcode: 2}),
+      }).then((response) => {
+          return response.json();
+      }).then((data) => {
+          console.log("2 data: ", data.totalWeight);
+          setOverallScrapTotal(data);
+          setInventoryLevel(data[0].totalWeight);
+      }).catch(err => {
+          console.log(err);
+      })
+    ) 
+  }
+
+  //* UseEffect for Data Retrieval
 
   useEffect(() => {
-    fetchData();
+    getScrapWeekData();
+    getTotalScraps();
+    getTodayTotal();
+    getProfileData();
+  }, [])
+
+  //* Refresh Control for Overview
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    getScrapWeekData();
+    getTotalScraps();
+    getTodayTotal();
+    getProfileData();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
   }, []);
 
-  // Stacked Bar Data
+  const isFocused = useIsFocused();
 
-  const data = [
-    { x: "sun", y: 3 },
-    { x: "mon", y: 4 },
-    { x: "tue", y: 2 },
-    { x: "wed", y: 3 },
-    { x: "thu", y: 4 },
-    { x: "fri", y: 2 },
-    { x: "sat", y: 3 },
-  ];
+  if(!isFocused) {
+    getProfileData();
+  }
 
-  // Stats Breakdown
+  //* Main Overview Component
 
-  const breakdown = [
-    {
-      id: 1,
-      mm: "May",
-      dd: 7,
-      day: "Sunday",
-      totalWeight: 31,
-    },
-    {
-      id: 2,
-      mm: "May",
-      dd: 8,
-      day: "Monday",
-      totalWeight: 42,
-    },
-    {
-      id: 3,
-      mm: "May",
-      dd: 9,
-      day: "Tuesday",
-      totalWeight: 11,
-    },
-    {
-      id: 4,
-      mm: "May",
-      dd: 10,
-      day: "Wednesday",
-      totalWeight: 30,
-    },
-    {
-      id: 5,
-      mm: "May",
-      dd: 11,
-      day: "Thursday",
-      totalWeight: 27,
-    },
-    {
-      id: 6,
-      mm: "May",
-      dd: 12,
-      day: "Friday",
-      totalWeight: 17,
-    },
-    {
-      id: 7,
-      mm: "May",
-      dd: 13,
-      day: "Saturday",
-      totalWeight: 28,
-    },
-  ];
-
-  // Chart Legend Data
-
-  const legend = [
-    {
-        itemId: 1,
-        material: "plastic",
-        color: "#E9D985"
-    },
-    {
-        itemId: 2,
-        material: "metal",
-        color: "#FF7961"
-    },
-    {
-        itemId: 3,
-        material: "textile",
-        color: "#FFC7C7"
-    }
-  ]
-
-  // Inventory Level Count (temporary)
-
-  const inventoryLevel = 250;
-
-  // Main Overview Component
-
-  // 
-
-  return (
+  return (isFocused ? (
     <SafeAreaView>
         <View style={{
             display: sideBar,
@@ -245,12 +275,12 @@ const OverviewBuyer = ({ navigation, route }) => {
                     <View style={styles.sidebarProfile}>
                         <TouchableOpacity onPress={() => {navigation.navigate("OwnerProfile")}}>
                           {
-                              hasImage === true ? 
+                              image !== "" ? 
                               (<Image style={styles.pfp} source={{uri: image}}></Image>) : 
                               (<Image style={styles.pfp} source={require('../assets/img/pfp.jpg')}></Image>)
                           }
                         </TouchableOpacity>
-                        <Text style={styles.profileName}>Aladiah Mehriel Fulminar</Text>
+                        <Text style={styles.profileName}>{headerName} {headerLastName}</Text>
                     </View>
                     <View style={styles.sidebarNavlist}>
                         <TouchableOpacity style={styles.navlistButton} onPress={() => {navigation.navigate("ScrapCat")}}>
@@ -295,6 +325,9 @@ const OverviewBuyer = ({ navigation, route }) => {
                         marginTop: 50,
                     }}>
                         <TouchableOpacity style={styles.closeButton} onPress={() => {
+                            getScrapWeekData();
+                            getTotalScraps();
+                            getTodayTotal();
                             setSideBar("none"); 
                             setNavBar("flex");
                         }}>
@@ -304,7 +337,11 @@ const OverviewBuyer = ({ navigation, route }) => {
                 </LinearGradient>
             </View>
         </View>
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <LinearGradient
           colors={["#F2F2F2", "#3E5A47"]}
           style={styles.gradientContainer}
@@ -314,12 +351,13 @@ const OverviewBuyer = ({ navigation, route }) => {
          <View style={styles.header}>
             <View style={styles.topHeader}>
                 <TouchableOpacity onPress={() => {
+                    getProfileData();
                     setSideBar("flex"); 
                     setNavBar("none");
                 }}>
                     <Image source={require('../assets/img/sidebar_logo.png')}></Image>
                 </TouchableOpacity>
-                <Text style={styles.userWelcome}>Hey, Aladiah</Text>
+                <Text style={styles.userWelcome}>Hey, {headerName}</Text>
             </View>
             <View style={styles.overview}>
                 <View style={styles.scrapWeight}>
@@ -327,7 +365,16 @@ const OverviewBuyer = ({ navigation, route }) => {
                     <TouchableOpacity onPress={() => {navigation.navigate("ReportALS")}}>
                         <View style={styles.todayScrap}>
                             <Text style={styles.scrapStatTitle}>Today's Scraps {"(kg)"}</Text>
-                            <Text style={styles.scrapCount}>14</Text>
+                            {
+                              todayScrapsTotal !== null ? (
+                                todayScrapsTotal.map(data => {
+                                  return <Text key={1} style={styles.scrapCount}>{data.totalWeight}</Text>
+                                })
+                              ) : (
+                                <Text style={styles.scrapCount}>0</Text>
+                              )
+                              
+                            }
                             <Image style={{
                                 position: 'absolute',
                                 top: 30,
@@ -338,7 +385,15 @@ const OverviewBuyer = ({ navigation, route }) => {
                     <TouchableOpacity onPress={() => {navigation.navigate("ReportALS")}}>
                         <View style={styles.todayScrap}>
                             <Text style={styles.scrapStatTitle}>Total Scraps {"(kg)"}</Text>
-                            <Text style={styles.scrapCount}>209</Text>
+                            {
+                              overallScrapTotal !== null ? (
+                                overallScrapTotal.map(data => {
+                                  return <Text key={1} style={styles.scrapCount}>{data.totalWeight}</Text>
+                                })
+                              ) : (
+                                <Text style={styles.scrapCount}>0</Text>
+                              )
+                            }
                             <Image style={{
                                 position: 'absolute',
                                 top: 30,
@@ -484,7 +539,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                 color: "#627D6B",
               }}
             >
-              May 7 - May 13 Scrap Statistics
+              {startMonth} {startDate} - {endMonth} {endDate} Scrap Statistics
             </Text>
             <TouchableOpacity onPress={() => {navigation.navigate("ReportALS")}}>
                 <Image source={require('../assets/img/statsArrow2.png')}></Image>
@@ -503,34 +558,54 @@ const OverviewBuyer = ({ navigation, route }) => {
             <VictoryChart
               style={styles.chart}
               theme={VictoryTheme.material}
-              padding={60}
-              domainPadding={20}
+              padding={{top: 60, bottom: 60, left: 60, right: 60}}
+              domain={{y: [0, 50]}}
+              domainPadding={30}
             >
-              <VictoryStack
+              <VictoryStack 
                 style={styles.chartStack}
-                colorScale={["#E9D985", "#FF7961", "#FFC7C7"]}
               >
-                {data.map((dataGraph, index) => {
-                  // console.log(data[index]);
-                  return <VictoryBar key={index} data={data} />;
-                })}
+                {
+                  data !== null ? (
+                    data.map(scrapdata => {
+                      return (
+                        <VictoryBar color={scrapdata.scrapColor} key={parseInt(scrapdata.scrapID)} data={[{x: scrapdata.scrapDayAdded, y: parseInt(scrapdata.totalWeight)}]}/>
+                      )
+                    })
+                  ) : (
+                    <></>
+                  )
+                }
               </VictoryStack>
             </VictoryChart>
             <View style={styles.chartLegend}>
                 {
-                    legend.map((data) => {
-                        return(
-                            <View key={data.itemId}>
-                                <View style={{
-                                    width: 41,
-                                    height: 13,
-                                    backgroundColor: data.color,
-                                    margin: 10
-                                }}/>
-                                <Text style={{textAlign: 'center'}}>{data.material}</Text>
-                            </View>
-                        )
-                    })
+                    data !== null ? (
+                      <>
+                        {
+                          data.map((data) => {
+                            return(
+                                  <View key={parseInt(data.scrapID)}>
+                                      <View style={{
+                                          width: 41,
+                                          height: 13,
+                                          backgroundColor: data.scrapColor,
+                                          margin: 10
+                                      }}/>
+                                      <Text style={{textAlign: 'center'}}>{data.scrapCategory}</Text>
+                                  </View>
+                              )
+                          })
+                        }
+                      </>
+                    ) : (
+                      <Text style={{
+                        color: '#3E5A47',
+                        fontFamily: 'Inter-SemiBold',
+                        fontSize: 12,
+                        textAlign: 'center'
+                      }}>No scrap data yet!</Text>
+                    )
                 }
             </View>
           </View>
@@ -577,7 +652,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                 source={require('../assets/img/highlighter.png')}/>
             </TouchableOpacity>
           </View>
-    </SafeAreaView>
+    </SafeAreaView>) : ("")
   );
 };
 
@@ -752,8 +827,9 @@ const styles = StyleSheet.create({
   chartLegend: {
     display: 'flex',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     width: '94%',
     borderColor: '#989E9A',
     borderRadius: 20,

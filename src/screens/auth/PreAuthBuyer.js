@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-import { View, Text, StyleSheet, ImageBackground, Image, BackHandler } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, Image, BackHandler, Dimensions } from 'react-native';
 import { TouchableOpacity } from 'react-native';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 const PreAuth = ({ navigation }) => {
 
@@ -21,7 +24,9 @@ const PreAuth = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <ImageBackground source={require('../assets/img/welcomeBuyer.png')} style={styles.bg}>
-                <Text style={styles.welcome}>Welcome</Text>
+                <View style={{alignItems: 'center', marginTop: windowHeight * 55 / 100}}>
+                    <Text style={styles.welcome}>Welcome</Text>
+                </View>
                 <View style={styles.authButtonContainer}>
                     <TouchableOpacity style={styles.authButton1} onPress={() => navigation.navigate('RegAuthBuyer')}>
                         <Text style={styles.authButtonLabel1}>Register</Text>
@@ -40,13 +45,13 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     bg: {
-        width: "100%",
-        height: "100%",
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
     },
     welcome: {
-        position: 'absolute',
-        top: 460,
-        left: 115,
         fontFamily: 'Inter-Thin',
         fontStyle: 'italic',
         fontSize: 50,
@@ -58,7 +63,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         flexDirection: 'row',
         paddingLeft: 10,
-        marginTop: 700,
+        marginTop: windowHeight * 20 / 100,
     },
     authButton1: {
         display: 'flex',
