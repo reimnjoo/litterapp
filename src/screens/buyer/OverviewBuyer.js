@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  RefreshControl
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../auth/context";
@@ -24,6 +25,7 @@ import {
 } from "victory-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Divider } from "@rneui/themed";
+import { useIsFocused } from "@react-navigation/native";
 
 //* Device Width x Height
 
@@ -81,6 +83,18 @@ const OverviewBuyer = ({ navigation, route }) => {
   const [showBox, setShowBox] = useState(true);
 
   // Alert Handler (Device Back button logout handler)
+
+  //* Refresh Control for Overview
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    getProfileData();
+    getScrapWeekData();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
 
   const showConfirmDialog = () => {
     return Alert.alert(
@@ -164,18 +178,29 @@ const OverviewBuyer = ({ navigation, route }) => {
       )
   }
 
+  const getImageData = () => {
+    return image;
+  }
 
   useEffect(() => {
     getProfileData();
     getScrapWeekData();
   }, []);
 
+  const isFocused = useIsFocused();
+
+  if(!isFocused) {
+    getProfileData();
+    getImageData();
+  } 
 
   // Note: All data used for the bar chart are temporary.
 
-  return (
+  return ( isFocused ? (
     <SafeAreaView>
-      <ScrollView>
+      <ScrollView refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }>
         <LinearGradient
           colors={["#F2F2F2", "#3E5A47"]}
           style={styles.gradientContainer}
@@ -194,7 +219,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                 <TouchableOpacity onPress={() => {navigation.navigate("BuyerProfile")}}>
                   {
                     image !== null ?
-                      (<Image style={styles.pfp} source={{uri: image}}></Image>) : 
+                      (<Image style={styles.pfp} source={{uri: getImageData()}}></Image>) : 
                       (<Image style={styles.pfp} source={require('../assets/img/pfp.jpg')}></Image>)
                   }
                 </TouchableOpacity>
@@ -263,7 +288,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                   );
                 })
               ) : (
-                <View style={{position: 'absolute', width: 200, top: 120, left: 110}}>
+                <View style={{position: 'absolute', width: 200, top: 120, left: Width > 380 ? 110 : 80}}>
                   <Text style={{
                     color: '#3E5A47',
                     fontFamily: 'Inter-SemiBold',
@@ -372,6 +397,7 @@ const OverviewBuyer = ({ navigation, route }) => {
         </LinearGradient>
       </ScrollView>
     </SafeAreaView>
+  ) : ("")    
   );
 };
 
@@ -382,8 +408,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    width: 370,
-    marginTop: 50,
+    width: Width * 90 / 100,
+    marginTop: 20,
     marginBottom: 20,
   },
   pfp: {
@@ -420,10 +446,10 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexWrap: "wrap",
     alignItems: 'flex-start',
-    width: '100%',
+    width: Width * 100 / 100,
     height: 320,
-    paddingTop: 30,
-    paddingLeft: 10,
+    paddingTop: 20,
+    paddingLeft: 10
   },
   statDate: {
     fontFamily: "Inter-Regular",
@@ -437,7 +463,7 @@ const styles = StyleSheet.create({
   },
   graphContainer: {
     backgroundColor: 'white',
-    width: 380,
+    width: Width * 90 / 100,
     marginTop: 20,
     marginBottom: 20,
     borderRadius: 20,

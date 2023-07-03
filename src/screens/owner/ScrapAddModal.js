@@ -1,6 +1,6 @@
 // Component Imports
 
-import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, useWindowDimensions, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, useWindowDimensions, TouchableWithoutFeedback, KeyboardAvoidingView } from 'react-native';
 import React, { useCallback, forwardRef, useImperativeHandle } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {

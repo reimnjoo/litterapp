@@ -69,7 +69,7 @@ const Inventory = ({ navigation }) => {
         <View>
             <SafeAreaView>
                 <ScrollView>
-                    <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 60, paddingLeft: 20, paddingRight: 20}}>
+                    <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 20, paddingLeft: 20, paddingRight: 20}}>
                     <TouchableOpacity onPress={() => { navigation.goBack();}}>
                         <Ionicons name="arrow-back" size={24} color="#3E5A47"/>
                     </TouchableOpacity>

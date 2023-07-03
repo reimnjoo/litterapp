@@ -602,7 +602,7 @@ const ScrapCat = ({ navigation }) => {
                     colors={["#F4F5F4", "#A0B5A6"]}
                     style={{
                         flex: 1,
-                        paddingTop: 60,
+                        paddingTop: 20,
                     }}
                     start={{ x: 0, y: 0.2 }}
                     end={{ x: 0, y: 1 }}
@@ -1049,182 +1049,188 @@ const ScrapCat = ({ navigation }) => {
                                 </TouchableOpacity>
                         </View>
                     </ScrapAddModal>
-                    <ScrapAddModal activeHeight={Height > 728 ? (Height * 58 / 100) : (Height * 65 / 100)} ref={addScrapModalRef} backgroundColor={'white'} backDropColor={'black'}>
-                        <Text style={{
-                            color: '#3E5A47',
-                            fontFamily: 'Inter-SemiBold',
-                            fontSize: 20,
-                            textAlign: 'center',
-                            marginTop: 10,
-                        }}>Add Entry</Text>
-                        <View style={{alignItems: 'center'}}>
-                            <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
-                                <TextInput
-                                    value={scrapName}
-                                    onChangeText={scrapname => { setScrapName(scrapname) }}
-                                    placeholder="Item Name"
-                                    style={{
-                                        fontFamily: 'Inter-Regular',
-                                        fontSize: 16,
-                                        textAlign: 'center',
-                                        width: Width * 50 / 100,
-                                        paddingBottom: 10,
-                                        borderBottomWidth: 0.7,
-                                        borderBottomColor: '#3E5A47',
-                                        marginTop: 25,
-                                        textAlign: 'left',
-                                    }}
-                                />
-                                <TextInput
-                                    value={scrapSize}
-                                    onChangeText={size => { setScrapSize(size) }}
-                                    placeholder="Size"
-                                    style={{
-                                        fontFamily: 'Inter-Regular',
-                                        fontSize: 16,
-                                        textAlign: 'center',
-                                        width: Width * 20 / 100,
-                                        paddingBottom: 10,
-                                        borderBottomWidth: 0.7,
-                                        borderBottomColor: '#3E5A47',
-                                        marginTop: 25,
-                                        textAlign: 'left',
-                                    }}
-                                />
-                            </View>
-                            <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
-                                <TextInput
-                                    value={scrapCost}
-                                    onChangeText={scrapcost => { setScrapCost(scrapcost) }}
-                                    placeholder="Cost / kg"
-                                    style={{
-                                        fontFamily: 'Inter-Regular',
-                                        fontSize: 16,
-                                        textAlign: 'center',
-                                        width: Width * 50 / 100,
-                                        paddingBottom: 10,
-                                        borderBottomWidth: 0.7,
-                                        borderBottomColor: '#3E5A47',
-                                        marginTop: 25,
-                                        textAlign: 'left',
-                                    }}
-                                />
-                                <TextInput
-                                    value={scrapQuantity}
-                                    onChangeText={scrapquantity => { setScrapQuantity(scrapquantity) }}
-                                    placeholder="Quantity"
-                                    style={{
-                                        fontFamily: 'Inter-Regular',
-                                        fontSize: 16,
-                                        textAlign: 'center',
-                                        width: Width * 20 / 100,
-                                        paddingBottom: 10,
-                                        borderBottomWidth: 0.7,
-                                        borderBottomColor: '#3E5A47',
-                                        marginTop: 25,
-                                        textAlign: 'left',
-                                    }}
-                                />
-                            </View>
-                            <TextInput
-                                value={scrapWeight}
-                                keyboardType = 'number-pad'
-                                onChangeText={scrapweight => { setScrapWeight(scrapweight) }}
-                                placeholder="Accumulated Weight in kg"
-                                style={{
-                                    fontFamily: 'Inter-Regular',
-                                    fontSize: 16,
-                                    textAlign: 'center',
-                                    width: Width * 50 / 100,
-                                    paddingBottom: 10,
-                                    borderBottomWidth: 0.7,
-                                    borderBottomColor: '#3E5A47',
-                                    marginTop: 25,
-                                    textAlign: 'center',
-                                }}
-                            />
-                        </View>
-                        <View style={{
-                            alignItems: 'center',
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            marginLeft: 40,
-                            marginRight: 40,
-                            marginTop: 50,
-                        }}>
-                            {showPicker && (
-                                <DateTimePicker
-                                    mode="date"
-                                    display="calendar"
-                                    value={scrapAddDate}
-                                    onChange={onChange}
-                                />
-                            )}
-                            <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', gap: 10}} onPress={pickImage}>
-                                {
-                                    hasImage === true ? (
-                                        <>
-                                            <Text style={{
-                                                color: '#3E5A47',
-                                                fontFamily: 'Inter-SemiBold',
-                                                fontSize: 18,
-                                            }}>Image Uploaded</Text>
-                                            <AntDesign name="checkcircle" size={24} color="#3E5A47" />
-                                        </>
-                                    ) : (
-                                        <>
-                                            <MaterialCommunityIcons name="file-image-plus-outline" size={32} color="#3E5A47" />
-                                            <Text style={{fontFamily: 'Inter-Regular', fontSize: 18, textDecorationLine: 'underline', color: '#3E5A47'}}>Upload Image</Text>
-                                        </>
-                                    )
-                                }
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => {toggleDatePicker();}}>
-                                <MaterialCommunityIcons name="calendar-plus" size={34} color="#3E5A47" />
-                            </TouchableOpacity>
-                        </View>
-                        <View style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            marginLeft: 30,
-                            marginRight: 30,
-                            marginTop: 40,
-                        }}>
-                            <TouchableOpacity style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                borderRadius: 16,
-                                borderWidth: 1,
-                                borderColor: '#3E5A47',
-                                width: 100,
-                                height: 39
-                            }} onPress={() => {closeAddScrapHandler();}}>
-                                <Text style={{
-                                    fontFamily: 'Inter-Regular',
-                                    fontSize: 20,
-                                    color: '#3E5A47'
-                                }}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                backgroundColor: '#3E5A47',
-                                borderRadius: 16,
-                                width: 82,
-                                height: 39
-                            }} onPress={() => {closeAddScrapHandler(); submitScrapData(); uploadImage(); clearForm();}}>
+
+                    {/* Height > 728 ? (Height * 55 / 100) : (Height * 65 / 100) */}
+                    {/* <KeyboardAvoidingView
+                        behavior='height'
+                    > */}
+                        <ScrapAddModal activeHeight={Height > 728 ? (Height * 55 / 100) : (Height * 65 / 100)} ref={addScrapModalRef} backgroundColor={'white'} backDropColor={'black'}>
                             <Text style={{
-                                    fontFamily: 'Inter-Regular',
-                                    fontSize: 20,
-                                    color: '#F4F5F4'
-                                }}>Save</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrapAddModal>
+                                color: '#3E5A47',
+                                fontFamily: 'Inter-SemiBold',
+                                fontSize: 20,
+                                textAlign: 'center',
+                                marginTop: 10,
+                            }}>Add Entry</Text>
+                            <View style={{alignItems: 'center'}}>
+                                <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
+                                    <TextInput
+                                        value={scrapName}
+                                        onChangeText={scrapname => { setScrapName(scrapname) }}
+                                        placeholder="Item Name"
+                                        style={{
+                                            fontFamily: 'Inter-Regular',
+                                            fontSize: 16,
+                                            textAlign: 'center',
+                                            width: Width * 50 / 100,
+                                            paddingBottom: 10,
+                                            borderBottomWidth: 0.7,
+                                            borderBottomColor: '#3E5A47',
+                                            marginTop: 25,
+                                            textAlign: 'left',
+                                        }}
+                                    />
+                                    <TextInput
+                                        value={scrapSize}
+                                        onChangeText={size => { setScrapSize(size) }}
+                                        placeholder="Size"
+                                        style={{
+                                            fontFamily: 'Inter-Regular',
+                                            fontSize: 16,
+                                            textAlign: 'center',
+                                            width: Width * 20 / 100,
+                                            paddingBottom: 10,
+                                            borderBottomWidth: 0.7,
+                                            borderBottomColor: '#3E5A47',
+                                            marginTop: 25,
+                                            textAlign: 'left',
+                                        }}
+                                    />
+                                </View>
+                                <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '80%'}}>
+                                    <TextInput
+                                        value={scrapCost}
+                                        onChangeText={scrapcost => { setScrapCost(scrapcost) }}
+                                        placeholder="Cost / kg"
+                                        style={{
+                                            fontFamily: 'Inter-Regular',
+                                            fontSize: 16,
+                                            textAlign: 'center',
+                                            width: Width * 50 / 100,
+                                            paddingBottom: 10,
+                                            borderBottomWidth: 0.7,
+                                            borderBottomColor: '#3E5A47',
+                                            marginTop: 25,
+                                            textAlign: 'left',
+                                        }}
+                                    />
+                                    <TextInput
+                                        value={scrapQuantity}
+                                        onChangeText={scrapquantity => { setScrapQuantity(scrapquantity) }}
+                                        placeholder="Quantity"
+                                        style={{
+                                            fontFamily: 'Inter-Regular',
+                                            fontSize: 16,
+                                            textAlign: 'center',
+                                            width: Width * 20 / 100,
+                                            paddingBottom: 10,
+                                            borderBottomWidth: 0.7,
+                                            borderBottomColor: '#3E5A47',
+                                            marginTop: 25,
+                                            textAlign: 'left',
+                                        }}
+                                    />
+                                </View>
+                                <TextInput
+                                    value={scrapWeight}
+                                    keyboardType = 'number-pad'
+                                    onChangeText={scrapweight => { setScrapWeight(scrapweight) }}
+                                    placeholder="Accumulated Weight in kg"
+                                    style={{
+                                        fontFamily: 'Inter-Regular',
+                                        fontSize: 16,
+                                        textAlign: 'center',
+                                        width: Width * 50 / 100,
+                                        paddingBottom: 10,
+                                        borderBottomWidth: 0.7,
+                                        borderBottomColor: '#3E5A47',
+                                        marginTop: 25,
+                                        textAlign: 'center',
+                                    }}
+                                />
+                            </View>
+                            <View style={{
+                                alignItems: 'center',
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                marginLeft: 40,
+                                marginRight: 40,
+                                marginTop: 50,
+                            }}>
+                                {showPicker && (
+                                    <DateTimePicker
+                                        mode="date"
+                                        display="calendar"
+                                        value={scrapAddDate}
+                                        onChange={onChange}
+                                    />
+                                )}
+                                <TouchableOpacity style={{flexDirection: 'row', alignItems: 'center', gap: 10}} onPress={pickImage}>
+                                    {
+                                        hasImage === true ? (
+                                            <>
+                                                <Text style={{
+                                                    color: '#3E5A47',
+                                                    fontFamily: 'Inter-SemiBold',
+                                                    fontSize: 18,
+                                                }}>Image Uploaded</Text>
+                                                <AntDesign name="checkcircle" size={24} color="#3E5A47" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <MaterialCommunityIcons name="file-image-plus-outline" size={32} color="#3E5A47" />
+                                                <Text style={{fontFamily: 'Inter-Regular', fontSize: 18, textDecorationLine: 'underline', color: '#3E5A47'}}>Upload Image</Text>
+                                            </>
+                                        )
+                                    }
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => {toggleDatePicker();}}>
+                                    <MaterialCommunityIcons name="calendar-plus" size={34} color="#3E5A47" />
+                                </TouchableOpacity>
+                            </View>
+                            <View style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                marginLeft: 30,
+                                marginRight: 30,
+                                marginTop: 40,
+                            }}>
+                                <TouchableOpacity style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: 16,
+                                    borderWidth: 1,
+                                    borderColor: '#3E5A47',
+                                    width: 100,
+                                    height: 39
+                                }} onPress={() => {closeAddScrapHandler();}}>
+                                    <Text style={{
+                                        fontFamily: 'Inter-Regular',
+                                        fontSize: 20,
+                                        color: '#3E5A47'
+                                    }}>Cancel</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: '#3E5A47',
+                                    borderRadius: 16,
+                                    width: 82,
+                                    height: 39
+                                }} onPress={() => {closeAddScrapHandler(); submitScrapData(); uploadImage(); clearForm();}}>
+                                <Text style={{
+                                        fontFamily: 'Inter-Regular',
+                                        fontSize: 20,
+                                        color: '#F4F5F4'
+                                    }}>Save</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </ScrapAddModal>
+                    {/* </KeyboardAvoidingView> */}
                 </LinearGradient>
                 
             </SafeAreaView>

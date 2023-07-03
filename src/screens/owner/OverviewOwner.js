@@ -406,7 +406,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                     <Text style={styles.inventoryTitle}>Inventory Level</Text>
                     <Image style={styles.inventoryCan} source={require('../assets/img/trashcan.png')}></Image>
                     {
-                        inventoryLevel <= 50 ? (
+                        inventoryLevel >= 50 && inventoryLevel <= 99 ? (
                             <View>
                                 {console.log("first level")}
                                 <Image style={{
@@ -416,7 +416,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                                 }} source={require('../assets/img/firstbar.png')}></Image>
                             </View>
                         )
-                        : inventoryLevel <= 149 ? (
+                        : inventoryLevel >= 100 && inventoryLevel <= 149 ? (
                             <View style={styles.barContainer}>
                                 {console.log("second level")}
                                 <Image style={{
@@ -431,7 +431,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                                 }} source={require('../assets/img/firstbar.png')}></Image>
                             </View>
                         )
-                        : inventoryLevel <= 199 ? (
+                        : inventoryLevel >= 150 && inventoryLevel <= 199 ? (
                             <View style={styles.barContainer}>
                                 {console.log("third level")}
                                 <Image style={{
@@ -451,7 +451,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                                 }} source={require('../assets/img/firstbar.png')}></Image>
                             </View>
                         )
-                        : inventoryLevel <= 249 ? (
+                        : inventoryLevel >= 200 && inventoryLevel <= 249 ? (
                             <View style={styles.barContainer}>
                                 <Image style={{
                                     position: 'absolute',
@@ -559,7 +559,7 @@ const OverviewBuyer = ({ navigation, route }) => {
               style={styles.chart}
               theme={VictoryTheme.material}
               padding={{top: 60, bottom: 60, left: 60, right: 60}}
-              domain={{y: [0, 50]}}
+              domain={{y: [0, 250]}}
               domainPadding={30}
             >
               <VictoryStack 
