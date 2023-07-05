@@ -32,7 +32,7 @@ import {
 
 //* Icon Component Imports
 
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { Divider } from "@rneui/themed";
 import { useIsFocused } from "@react-navigation/native";
 
@@ -285,35 +285,35 @@ const OverviewBuyer = ({ navigation, route }) => {
                     <View style={styles.sidebarNavlist}>
                         <TouchableOpacity style={styles.navlistButton} onPress={() => {navigation.navigate("ScrapCat")}}>
                             <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                <Image source={require('../assets/img/categIcon.png')}></Image>
+                                <Image style={{width: 34, height: 33}} source={require('../assets/img/categIcon.png')}></Image>
                                 <Text style={styles.navlistLabel}>Categories</Text>
                             </View>
-                            <Image source={require('../assets/img/sidebarArrow.png')}></Image>
+                            <MaterialIcons name="arrow-forward-ios" size={24} color="#3E5A47"/>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.navlistButton} onPress={() => {navigation.navigate("Inventory")}}>
                             <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                <Image source={require('../assets/img/inveIcon.png')}></Image>
+                                <Image style={{width: 34, height: 33}} source={require('../assets/img/inveIcon.png')}></Image>
                                 <Text style={styles.navlistLabel}>Inventory</Text>
                             </View>
-                            <Image source={require('../assets/img/sidebarArrow.png')}></Image>
+                            <MaterialIcons name="arrow-forward-ios" size={24} color="#3E5A47"/>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.navlistButton} onPress={() => {navigation.navigate("ReportALS")}}>
                             <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                <Image source={require('../assets/img/analyticsIcon.png')}></Image>
+                                <Image style={{width: 34, height: 33}} source={require('../assets/img/analyticsIcon.png')}></Image>
                                 <Text style={styles.navlistLabel}>Analytics</Text>
                             </View>
-                            <Image source={require('../assets/img/sidebarArrow.png')}></Image>
+                            <MaterialIcons name="arrow-forward-ios" size={24} color="#3E5A47"/>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.navlistButton} onPress={() => {navigation.navigate("About")}}>
                             <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                <Image source={require('../assets/img/categIcon.png')}></Image>
+                                <Image style={{width: 34, height: 33}} source={require('../assets/img/aboutLitterIcon.png')}></Image>
                                 <Text style={styles.navlistLabel}>About Litter</Text>
                             </View>
-                            <Image source={require('../assets/img/sidebarArrow.png')}></Image>
+                            <MaterialIcons name="arrow-forward-ios" size={24} color="#3E5A47"/>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.navlistButton} onPress={() => {showConfirmDialog();}}>
                             <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                <Image source={require('../assets/img/logoutIcon.png')}></Image>
+                                <Image style={{width: 34, height: 33}} source={require('../assets/img/logoutIcon.png')}></Image>
                                 <Text style={styles.navlistLabel}>Log Out</Text>
                             </View>
                         </TouchableOpacity>
@@ -355,7 +355,7 @@ const OverviewBuyer = ({ navigation, route }) => {
                     setSideBar("flex"); 
                     setNavBar("none");
                 }}>
-                    <Image source={require('../assets/img/sidebar_logo.png')}></Image>
+                    <Image style={{width: 27, height: 19}} source={require('../assets/img/sidebar_logo.png')}></Image>
                 </TouchableOpacity>
                 <Text style={styles.userWelcome}>Hey, {headerName}</Text>
             </View>
@@ -375,11 +375,11 @@ const OverviewBuyer = ({ navigation, route }) => {
                               )
                               
                             }
-                            <Image style={{
-                                position: 'absolute',
-                                top: 30,
-                                left: 130
-                            }} source={require('../assets/img/statsArrow1.png')}></Image>
+                            <MaterialIcons style={{
+                              position: 'absolute',
+                              top: 30,
+                              left: 120
+                            }} name="arrow-forward-ios" size={24} color="#F2F2F2"/>
                         </View>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => {navigation.navigate("ReportALS")}}>
@@ -394,11 +394,11 @@ const OverviewBuyer = ({ navigation, route }) => {
                                 <Text style={styles.scrapCount}>0</Text>
                               )
                             }
-                            <Image style={{
-                                position: 'absolute',
-                                top: 30,
-                                left: 130
-                            }} source={require('../assets/img/statsArrow1.png')}></Image>
+                            <MaterialIcons style={{
+                              position: 'absolute',
+                              top: 30,
+                              left: 120
+                            }} name="arrow-forward-ios" size={24} color="#F2F2F2" />
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -508,6 +508,8 @@ const OverviewBuyer = ({ navigation, route }) => {
                     }
                     <Image style={{
                         position: 'absolute',
+                        width: 32,
+                        height: 106,
                         top: 66,
                         left: 10
                     }} source={require('../assets/img/inventoryNumbers.png')}></Image>
@@ -542,7 +544,7 @@ const OverviewBuyer = ({ navigation, route }) => {
               {startMonth} {startDate} - {endMonth} {endDate} Scrap Statistics
             </Text>
             <TouchableOpacity onPress={() => {navigation.navigate("ReportALS")}}>
-                <Image source={require('../assets/img/statsArrow2.png')}></Image>
+              <MaterialIcons name="arrow-forward-ios" size={24} color="#3E5A47"/>
             </TouchableOpacity>
           </View>
           <View style={styles.graphContainer}>
@@ -559,7 +561,7 @@ const OverviewBuyer = ({ navigation, route }) => {
               style={styles.chart}
               theme={VictoryTheme.material}
               padding={{top: 60, bottom: 60, left: 60, right: 60}}
-              domain={{y: [0, 250]}}
+              domain={{y: [0 , inventoryLevel]}}
               domainPadding={30}
             >
               <VictoryStack 
@@ -617,13 +619,13 @@ const OverviewBuyer = ({ navigation, route }) => {
         position: 'absolute',
         bottom: 0,
       }}>
-            <Image source={require('../assets/img/navBG.png')}/>
+            <Image style={{width: 420, height: 84}} source={require('../assets/img/navBG.png')}/>
             <TouchableOpacity style={{
                 position: 'absolute',
                 top: 30,
-                left: 100,
+                left: 120,
             }} onPress={() => {navigation.navigate("Inventory")}}>
-                <Image source={require('../assets/img/invIcon.png')}/>
+                <Image style={{width: 25, height: 20}} source={require('../assets/img/invIcon.png')}/>
             </TouchableOpacity>
             <TouchableOpacity style={{
                 backgroundColor: '#61876E',
@@ -633,21 +635,21 @@ const OverviewBuyer = ({ navigation, route }) => {
                 justifyContent: 'center',
                 position: 'absolute',
                 top: -30,
-                left: 170,
+                left: 185,
                 width: 67,
                 height: 58,
             }} onPress={() => {navigation.navigate("ScrapCat")}}>
-                <Image source={require('../assets/img/addIcon.png')}/>
+                <AntDesign name="plus" size={32} color="#F2F2F2" />
             </TouchableOpacity>
             <TouchableOpacity style={{
                 position: 'absolute',
-                top: 20,
-                left: 275
+                top: 26,
+                left: 290
             }}>
-                <Image source={require('../assets/img/homeIcon.png')}/>
+                <Image style={{width: 25, height: 20}} source={require('../assets/img/homeIcon.png')}/>
                 <Image style={{
                     marginTop: 5,
-                    marginLeft: 4.5
+                    marginLeft: 1.5,
                 }}
                 source={require('../assets/img/highlighter.png')}/>
             </TouchableOpacity>
@@ -664,7 +666,7 @@ const styles = StyleSheet.create({
     width: Width * 100 / 100,
     backgroundColor: "#2c3e50",
     alignItems: "center",
-    zIndex: 2
+    zIndex: 2,
   },
   pfp: {
     width: 100,
@@ -782,8 +784,10 @@ const styles = StyleSheet.create({
   },
   inventoryCan: {
     position: 'absolute',
+    width: 90,
+    height: 137,
     top: 45,
-    left: 55
+    left: 56
   },
   weightTitle: {
     fontFamily: 'Inter-Medium',

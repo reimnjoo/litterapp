@@ -115,6 +115,34 @@ const OverviewBuyer = ({ navigation, route }) => {
     );
   };
 
+  //* Inventory Level Count 
+  
+  const [inventoryLevel, setInventoryLevel] = useState(0);
+
+  const getTotalScraps = () => {
+    return (
+      fetch("https://sseoll.com/overviewScraps.php", {
+          method: 'POST',
+          headers: {
+          'Accept' : 'application/json',
+          'Content-Type' : 'application/json'
+          },
+      body: JSON.stringify({readcode: 2}),
+      }).then((response) => {
+          return response.json();
+      }).then((data) => {
+          console.log("2 data: ", data.totalWeight);
+          setInventoryLevel(data[0].totalWeight);
+      }).catch(err => {
+          console.log(err);
+      })
+    ) 
+  }
+
+  useEffect(() => {
+    getTotalScraps();
+  }, [])
+
   //* Fetch Profile Data
 
   const [headerName, setHeaderName] = useState("");
@@ -231,16 +259,9 @@ const OverviewBuyer = ({ navigation, route }) => {
                   handleBackButtonClick();
                 }}
               >
-                <LinearGradient
-                  colors={["#F4F5F4", "#97C5A6"]}
-                  style={styles.gradientButton}
-                  start={{ x: 0, y: 0.2 }}
-                  end={{ x: 0, y: 0.8 }}
-                >
-                  <Image
-                    source={require("../assets/img/logout.png")}
-                  />
-                </LinearGradient>
+                <Image
+                    style={{width: 34, height: 33}} source={require("../assets/img/logout.png")}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -344,7 +365,7 @@ const OverviewBuyer = ({ navigation, route }) => {
               style={styles.chart}
               theme={VictoryTheme.material}
               padding={{top: 60, bottom: 60, left: 60, right: 60}}
-              domain={{y: [0, 50]}}
+              domain={{y: [0, inventoryLevel]}}
               domainPadding={30}
             >
               <VictoryStack 

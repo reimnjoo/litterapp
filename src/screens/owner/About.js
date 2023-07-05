@@ -118,22 +118,30 @@ const styles = StyleSheet.create({
     firstKnot: {
         position: 'absolute',
         top: 7,
-        left: 7
+        left: 7,
+        width: 20,
+        height: 20,
     },
     secondKnot: {
         position: 'absolute',
         top: 7,
-        right: 7
+        right: 7,
+        width: 20,
+        height: 20,
     },
     thirdKnot: {
         position: 'absolute',
         bottom: 7,
-        left: 7
+        left: 7,
+        width: 20,
+        height: 20,
     },
     fourthKnot: {
         position: 'absolute',
         bottom: 7,
-        right: 7
+        right: 7,
+        width: 20,
+        height: 20,
     },
     aboutLitter: {
         alignItems: 'center',

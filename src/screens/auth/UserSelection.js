@@ -23,7 +23,7 @@ const UserSelection = ({ navigation }) => {
                             start={{x: 0.5, y: 0.1}}
                         >
                             <TouchableOpacity onPress={() => {navigation.navigate('PreAuthOwner')}} style={styles.uscButton}>
-                                <Image source={require('../assets/img/ownerIcon.png')}></Image>
+                                <Image style={{width: 86, height: 86}} source={require('../assets/img/ownerIcon.png')}></Image>
                                 <Text style={styles.uscButtonLabel}>Owner</Text>
                             </TouchableOpacity>
                         </LinearGradient>
@@ -33,7 +33,7 @@ const UserSelection = ({ navigation }) => {
                             start={{x: 0.5, y: 0.1}}
                         >
                             <TouchableOpacity onPress={() => {navigation.navigate('PreAuthBuyer')}} style={styles.uscButton}>
-                                <Image source={require('../assets/img/buyerIcon.png')}></Image>
+                                <Image style={{width: 86, height: 86}} source={require('../assets/img/buyerIcon.png')}></Image>
                                 <Text style={styles.uscButtonLabel}>Buyer</Text>
                             </TouchableOpacity>
                         </LinearGradient>

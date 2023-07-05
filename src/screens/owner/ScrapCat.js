@@ -178,6 +178,7 @@ const ScrapCat = ({ navigation }) => {
               {
                 text: "Okay",
                 onPress: () => {
+                  getScrapData();
                   setShowBox(false);
                 },
               },
@@ -274,6 +275,7 @@ const ScrapCat = ({ navigation }) => {
     const [data, setData] = useState([]);
     const [tempCategory, setTempCategory] = useState("");
     const [category, setCategoryData] = useState([]);
+    const [oldCategory, setOldCategory] = useState("");
 
     // Category Temporary Data
 
@@ -425,6 +427,7 @@ const ScrapCat = ({ navigation }) => {
         setScrapFinalDate("");
         setDayOfDate("");
         setScrapCategory("");
+        setOldCategory("");
         setScrapImage("");
         setScrapColor("");
         setHasImage(false);
@@ -453,14 +456,16 @@ const ScrapCat = ({ navigation }) => {
 
     // Submit Edited Scrap Data
     
-    const setEditState = (scrapID, scrapName, scrapSize, scrapCost, scrapQuantity, scrapWeight, scrapDate, scrapCategory, scrapImage) => {
+    const setEditState = (scrapID, scrapName, scrapSize, scrapCost, scrapQuantity, scrapWeight, scrapDate, scrapDayAdded, scrapCategory, scrapImage) => {
         setScrapID(scrapID);
         setScrapName(scrapName);
         setScrapSize(scrapSize);
         setScrapCost(scrapCost);
         setScrapQuantity(scrapQuantity);
+        setScrapFinalDate(scrapDate);
         setScrapWeight(scrapWeight);
         setScrapFinalDate(scrapDate);
+        setDayOfDate(scrapDayAdded);
         setTemporaryCategory(scrapCategory);
         setScrapImage(scrapImage);
 
@@ -541,6 +546,7 @@ const ScrapCat = ({ navigation }) => {
     const categoryEditForm = {
         categoryID: categoryID,
         categoryTitle: tempCategory,
+        oldCategoryTitle: oldCategory,
     }
 
     const editCategory = () => {
@@ -632,7 +638,7 @@ const ScrapCat = ({ navigation }) => {
                                                 <View style={styles.categoryHeader}>
                                                     <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                                         <Text style={styles.categoryTitle}>{ categories.categoryTitle }</Text>
-                                                        <TouchableOpacity onPress={() => {openEditCategoryHandler(); setCategoryID(categories.categoryID); setTempCategory(categories.categoryTitle);}}>
+                                                        <TouchableOpacity onPress={() => {openEditCategoryHandler(); setCategoryID(categories.categoryID); setTempCategory(categories.categoryTitle); setOldCategory(categories.categoryTitle)}}>
                                                             <Image style={{width: 16, height: 15,}} source={require("../assets/img/pencil.png")}/>
                                                         </TouchableOpacity>
                                                     </View>
@@ -710,7 +716,7 @@ const ScrapCat = ({ navigation }) => {
                                                                                     <Text style={styles.categoryLabel}>Quantity: </Text>
                                                                                     <Text style={styles.categoryText}>{scrapdata.scrapQuantity} pieces </Text>
                                                                                 </View>
-                                                                                <TouchableOpacity style={styles.categoryEdit} onPress={() => {setEditState(scrapdata.scrapID, scrapdata.scrapName, scrapdata.scrapSize, scrapdata.scrapCost, scrapdata.scrapQuantity, scrapdata.scrapWeight, scrapdata.scrapAddDate, scrapdata.scrapCategory, scrapdata.scrapImage); openEditHandler();}}>
+                                                                                <TouchableOpacity style={styles.categoryEdit} onPress={() => {setEditState(scrapdata.scrapID, scrapdata.scrapName, scrapdata.scrapSize, scrapdata.scrapCost, scrapdata.scrapQuantity, scrapdata.scrapWeight, scrapdata.scrapAddDate, scrapdata.scrapDayAdded,scrapdata.scrapCategory, scrapdata.scrapImage); openEditHandler();}}>
                                                                                     <Image style={{width: 16, height: 15,}}source={require("../assets/img/pencil.png")}></Image>
                                                                                 </TouchableOpacity>
                                                                             </View>
@@ -741,7 +747,7 @@ const ScrapCat = ({ navigation }) => {
                             }
                         </ScrollView>
                     </View>
-                    <ScrapAddModal activeHeight={Height * 35 / 100} ref={addModalRef} backgroundColor={'white'} backDropColor={'black'}>
+                    <ScrapAddModal activeHeight={Height > 728 ? (Height * 35 / 100) : (Height * 39 / 100)} ref={addModalRef} backgroundColor={'white'} backDropColor={'black'}>
                         <Text style={{
                             color: '#3E5A47',
                             fontFamily: 'Inter-SemiBold',
@@ -807,7 +813,7 @@ const ScrapCat = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
                     </ScrapAddModal>
-                    <ScrapAddModal activeHeight={Height * 35 / 100} ref={editCategoryModalRef} backgroundColor={'white'} backDropColor={'black'}>
+                    <ScrapAddModal activeHeight={Height > 728 ? (Height * 35 / 100) : (Height * 39 / 100)} ref={editCategoryModalRef} backgroundColor={'white'} backDropColor={'black'}>
                         <Text style={{
                             color: '#3E5A47',
                             fontFamily: 'Inter-SemiBold',
@@ -864,7 +870,7 @@ const ScrapCat = ({ navigation }) => {
                                 borderRadius: 16,
                                 width: 82,
                                 height: 39
-                            }} onPress={() => {editCategory(); closeEditCategoryHandler(); editSuccessDialog();}}>
+                            }} onPress={() => { editCategory(); closeEditCategoryHandler(); editSuccessDialog();}}>
                             <Text style={{
                                     fontFamily: 'Inter-Regular',
                                     fontSize: 20,

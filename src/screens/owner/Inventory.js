@@ -104,7 +104,7 @@ const Inventory = ({ navigation }) => {
                                         inventoryData.map((inventory) => {
                                             return (
                                                 <View style={{alignItems: 'center', height: 50, marginTop: 40}}>
-                                                    <Image source={require("../assets/img/default_inventory_icon.png")}/>
+                                                    <Image style={{width: 40, height: 40}} source={require("../assets/img/default_inventory_icon.png")}/>
                                                     <Text style={{
                                                         color: '#3E5A47',
                                                         fontFamily: 'Inter-Bold',
